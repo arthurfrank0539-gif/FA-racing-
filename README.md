@@ -1,55 +1,64 @@
-# Car-gameimport pygame
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Browser Car Game</title>
+    <style>
+        body {
+            margin: 0;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background: #000;
+            border: 4px solid #fff;
+        }
+    </style>
+</head>
+<body>
 
-# Initialize Pygame
-pygame.init()
+<canvas id="gameCanvas" width="699" height="400"></canvas>
 
-# Screen setup
-width = 699
-height = 400
-screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("My Car Game")
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-# Game control setup
-running = True
-clock = pygame.time.Clock() # Controls the game speed
+// Car properties
+let carX = 250;
+let carY = 100;
+const carWidth = 50;
+const carHeight = 30;
+const speed = 5;
 
-print("Start ->")
+// Track keyboard inputs
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
-# Load and scale the car picture
-# Note: 'img.png' must be uploaded to the same folder on GitHub as this code!
-img = pygame.image.load('img.png')
-img = pygame.transform.scale(img, (200, 200))
+// Main Game Loop
+function gameLoop() {
+    // 1. Handle Movement
+    if (keys["ArrowLeft"] || keys["a"]) carX -= speed;
+    if (keys["ArrowRight"] || keys["d"]) carX += speed;
+    if (keys["ArrowUp"] || keys["w"]) carY -= speed;
+    if (keys["ArrowDown"] || keys["s"]) carY += speed;
 
-# Starting position of the car
-x = 250
-y = 100
+    // 2. Clear Screen
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-# Main Game Loop
-while running:
-    # 1. Handle Events (like clicking the close window 'X')
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            
-    # 2. Handle Key Presses for Movement
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT]:
-        x -= 5
-    if keys[pygame.K_RIGHT]:
-        x += 5
-    if keys[pygame.K_UP]:
-        y -= 5
-    if keys[pygame.K_DOWN]:
-        y += 5
+    // 3. Draw Car (A sleek red rectangle for now)
+    ctx.fillStyle = "red";
+    ctx.fillRect(carX, carY, carWidth, carHeight);
 
-    # 3. Drawing and Graphics
-    screen.fill((0, 0, 0))     # Clear screen with black background
-    screen.blit(img, (x, y))   # Draw the car image at its current x, y position
-    pygame.display.update()    # Refresh the screen
+    // Keep the loop running smoothly
+    requestAnimationFrame(gameLoop);
+}
 
-    # 4. Keep the game running at a smooth 60 frames per second
-    clock.tick(60)
+// Start the game
+gameLoop();
+</script>
 
-# Clean up and close
-pygame.quit()
-print("End->")
+</body>
+</html>
