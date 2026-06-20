@@ -14,10 +14,12 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
             overflow: hidden;
+            user-select: none; /* Prevents text highlighting when tapping */
+            -webkit-user-select: none;
         }
         h1 {
-            margin-bottom: 10px;
-            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
             text-transform: uppercase;
             letter-spacing: 4px;
             text-shadow: 0 0 10px #00fff2, 0 0 20px #00fff2;
@@ -27,16 +29,20 @@
             box-shadow: 0 0 30px rgba(0, 255, 242, 0.2);
             border-radius: 12px;
             overflow: hidden;
+            width: 100%;
+            max-width: 699px;
         }
         canvas {
             background: #111;
             display: block;
             border: 3px solid #00fff2;
+            width: 100%;
+            height: auto;
         }
         #restartBtn {
             display: none;
             position: absolute;
-            top: 65%;
+            top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             padding: 12px 30px;
@@ -49,12 +55,38 @@
             border-radius: 30px;
             cursor: pointer;
             box-shadow: 0 0 15px #ff0055;
-            transition: 0.2s ease;
+            z-index: 10;
         }
-        #restartBtn:hover {
-            background: #ff3377;
-            box-shadow: 0 0 25px #ff3377;
-            transform: translate(-50%, -50%) scale(1.05);
+        /* Touch Controls Styling */
+        .touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            pointer-events: none; /* Allows clicks to pass through container */
+        }
+        .btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 255, 242, 0.2);
+            border: 2px solid #00fff2;
+            border-radius: 50%;
+            color: #00fff2;
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto; /* Re-enables clicking on buttons */
+            box-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
+            touch-action: manipulation; /* Fixes mobile click delays */
+        }
+        .btn:active {
+            background: rgba(0, 255, 242, 0.6);
+            box-shadow: 0 0 20px #00fff2;
         }
     </style>
 </head>
@@ -64,6 +96,11 @@
 <div class="container">
     <canvas id="gameCanvas" width="699" height="500"></canvas>
     <button id="restartBtn" onclick="resetGame()">Drive Again</button>
+    
+    <div class="touch-controls">
+        <div class="btn" id="leftBtn">←</div>
+        <div class="btn" id="rightBtn">→</div>
+    </div>
 </div>
 
 <script>
@@ -95,6 +132,21 @@ const keys = {};
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
+// Track touch inputs
+let touchLeft = false;
+let touchRight = false;
+
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+
+// Handle Touch Events for Left Button
+leftBtn.addEventListener("touchstart", (e) => { e.preventDefault(); touchLeft = true; });
+leftBtn.addEventListener("touchend", () => touchLeft = false);
+
+// Handle Touch Events for Right Button
+rightBtn.addEventListener("touchstart", (e) => { e.preventDefault(); touchRight = true; });
+rightBtn.addEventListener("touchend", () => touchRight = false);
+
 function checkCollision(rect1X, rect1Y, rect1W, rect1H, rect2X, rect2Y, rect2W, rect2H) {
     return rect1X < rect2X + rect2W &&
            rect1X + rect1W > rect2X &&
@@ -117,7 +169,6 @@ function resetGame() {
 // Main Game Loop
 function gameLoop() {
     if (gameOver) {
-        // Draw modern Game Over screen overlay
         ctx.fillStyle = "rgba(15, 15, 27, 0.85)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -137,9 +188,9 @@ function gameLoop() {
         return;
     }
 
-    // 1. Controls & Invisible Walls
-    if ((keys["ArrowLeft"] || keys["a"]) && carX > 40) carX -= speed;
-    if ((keys["ArrowRight"] || keys["d"]) && carX < canvas.width - carWidth - 40) carX += speed;
+    // 1. Controls (Keyboard OR Touch) & Invisible Walls
+    if ((keys["ArrowLeft"] || keys["a"] || touchLeft) && carX > 40) carX -= speed;
+    if ((keys["ArrowRight"] || keys["d"] || touchRight) && carX < canvas.width - carWidth - 40) carX += speed;
     if ((keys["ArrowUp"] || keys["w"]) && carY > 0) carY -= speed;
     if ((keys["ArrowDown"] || keys["s"]) && carY < canvas.height - carHeight) carY += speed;
 
@@ -163,13 +214,13 @@ function gameLoop() {
 
     // 4. Graphics Rendering
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.shadowBlur = 0; // Reset glows for track background
+    ctx.shadowBlur = 0;
 
     // Draw the highway asphalt
     ctx.fillStyle = "#22222b";
     ctx.fillRect(40, 0, canvas.width - 80, canvas.height);
 
-    // Side shoulders (Neon green guardrails)
+    // Side shoulders
     ctx.fillStyle = "#00ff66";
     ctx.fillRect(35, 0, 5, canvas.height);
     ctx.fillRect(canvas.width - 40, 0, 5, canvas.height);
@@ -186,11 +237,9 @@ function gameLoop() {
     ctx.fillStyle = "#00fff2";
     ctx.fillRect(carX, carY, carWidth, carHeight);
     
-    // Windshield detail
     ctx.fillStyle = "#111";
     ctx.fillRect(carX + 5, carY + 15, carWidth - 10, 15);
     
-    // Headlights
     ctx.fillStyle = "#fff";
     ctx.fillRect(carX + 4, carY, 6, 4);
     ctx.fillRect(carX + carWidth - 10, carY, 6, 4);
@@ -201,7 +250,6 @@ function gameLoop() {
     ctx.fillStyle = "#ff0055";
     ctx.fillRect(obstacleX, obstacleY, obstacleWidth, obstacleHeight);
     
-    // Obstacle Windshield detail
     ctx.fillStyle = "#111";
     ctx.fillRect(obstacleX + 5, obstacleY + 45, obstacleWidth - 10, 15);
 
@@ -221,7 +269,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Kickstart deployment
 gameLoop();
 </script>
 
