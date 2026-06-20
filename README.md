@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Neon Rider - Car Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             margin: 0;
@@ -10,26 +11,26 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
             overflow: hidden;
-            user-select: none; /* Prevents text highlighting when tapping */
+            user-select: none;
             -webkit-user-select: none;
         }
         h1 {
-            margin: 0 0 10px 0;
-            font-size: 2.2rem;
+            margin: 10px 0;
+            font-size: 2rem;
             text-transform: uppercase;
             letter-spacing: 4px;
-            text-shadow: 0 0 10px #00fff2, 0 0 20px #00fff2;
+            text-shadow: 0 0 10px #00fff2;
         }
         .container {
             position: relative;
             box-shadow: 0 0 30px rgba(0, 255, 242, 0.2);
             border-radius: 12px;
             overflow: hidden;
-            width: 100%;
+            width: 90%;
             max-width: 699px;
         }
         canvas {
@@ -57,36 +58,33 @@
             box-shadow: 0 0 15px #ff0055;
             z-index: 10;
         }
-        /* Touch Controls Styling */
-        .touch-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
+        /* New & Improved Touch Controls Pad */
+        .controls-pad {
             display: flex;
-            justify-content: space-between;
-            padding: 0 30px;
-            pointer-events: none; /* Allows clicks to pass through container */
+            justify-content: space-around;
+            width: 90%;
+            max-width: 699px;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
         .btn {
-            width: 80px;
+            width: 100px;
             height: 80px;
-            background: rgba(0, 255, 242, 0.2);
-            border: 2px solid #00fff2;
-            border-radius: 50%;
+            background: rgba(0, 255, 242, 0.1);
+            border: 3px solid #00fff2;
+            border-radius: 15px;
             color: #00fff2;
-            font-size: 2rem;
-            font-weight: bold;
+            font-size: 2.5rem;
             display: flex;
             justify-content: center;
             align-items: center;
-            pointer-events: auto; /* Re-enables clicking on buttons */
-            box-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
-            touch-action: manipulation; /* Fixes mobile click delays */
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.2);
+            touch-action: none; /* Stops the screen from shaking when tapped */
         }
         .btn:active {
-            background: rgba(0, 255, 242, 0.6);
-            box-shadow: 0 0 20px #00fff2;
+            background: rgba(0, 255, 242, 0.5);
+            box-shadow: 0 0 25px #00fff2;
+            color: #fff;
         }
     </style>
 </head>
@@ -96,11 +94,11 @@
 <div class="container">
     <canvas id="gameCanvas" width="699" height="500"></canvas>
     <button id="restartBtn" onclick="resetGame()">Drive Again</button>
-    
-    <div class="touch-controls">
-        <div class="btn" id="leftBtn">←</div>
-        <div class="btn" id="rightBtn">→</div>
-    </div>
+</div>
+
+<div class="controls-pad">
+    <div class="btn" id="leftBtn">◀</div>
+    <div class="btn" id="rightBtn">▶</div>
 </div>
 
 <script>
@@ -118,7 +116,7 @@ let carX = 325;
 let carY = 380;
 const carWidth = 45;
 const carHeight = 75;
-const speed = 7;
+const speed = 8; // Slightly faster steering for touch pads
 
 // Obstacle properties
 let obstacleX = Math.random() * (canvas.width - 45);
@@ -127,25 +125,25 @@ const obstacleWidth = 45;
 const obstacleHeight = 75;
 let obstacleSpeed = 5;
 
-// Track keyboard inputs
+// Keyboard backup
 const keys = {};
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
-// Track touch inputs
+// Touch states
 let touchLeft = false;
 let touchRight = false;
 
 const leftBtn = document.getElementById("leftBtn");
 const rightBtn = document.getElementById("rightBtn");
 
-// Handle Touch Events for Left Button
+// Left button triggers
 leftBtn.addEventListener("touchstart", (e) => { e.preventDefault(); touchLeft = true; });
-leftBtn.addEventListener("touchend", () => touchLeft = false);
+leftBtn.addEventListener("touchend", (e) => { e.preventDefault(); touchLeft = false; });
 
-// Handle Touch Events for Right Button
+// Right button triggers
 rightBtn.addEventListener("touchstart", (e) => { e.preventDefault(); touchRight = true; });
-rightBtn.addEventListener("touchend", () => touchRight = false);
+rightBtn.addEventListener("touchend", (e) => { e.preventDefault(); touchRight = false; });
 
 function checkCollision(rect1X, rect1Y, rect1W, rect1H, rect2X, rect2Y, rect2W, rect2H) {
     return rect1X < rect2X + rect2W &&
@@ -166,7 +164,6 @@ function resetGame() {
     gameLoop();
 }
 
-// Main Game Loop
 function gameLoop() {
     if (gameOver) {
         ctx.fillStyle = "rgba(15, 15, 27, 0.85)";
@@ -188,13 +185,10 @@ function gameLoop() {
         return;
     }
 
-    // 1. Controls (Keyboard OR Touch) & Invisible Walls
+    // Movement evaluation
     if ((keys["ArrowLeft"] || keys["a"] || touchLeft) && carX > 40) carX -= speed;
     if ((keys["ArrowRight"] || keys["d"] || touchRight) && carX < canvas.width - carWidth - 40) carX += speed;
-    if ((keys["ArrowUp"] || keys["w"]) && carY > 0) carY -= speed;
-    if ((keys["ArrowDown"] || keys["s"]) && carY < canvas.height - carHeight) carY += speed;
 
-    // 2. Road Environment Animation
     roadOffset += obstacleSpeed;
     if (roadOffset > 40) roadOffset = 0;
 
@@ -207,31 +201,29 @@ function gameLoop() {
         obstacleSpeed += 0.4; 
     }
 
-    // 3. Collision Logic
     if (checkCollision(carX, carY, carWidth, carHeight, obstacleX, obstacleY, obstacleWidth, obstacleHeight)) {
         gameOver = true;
     }
 
-    // 4. Graphics Rendering
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.shadowBlur = 0;
 
-    // Draw the highway asphalt
+    // Asphalt
     ctx.fillStyle = "#22222b";
     ctx.fillRect(40, 0, canvas.width - 80, canvas.height);
 
-    // Side shoulders
+    // Shoulders
     ctx.fillStyle = "#00ff66";
     ctx.fillRect(35, 0, 5, canvas.height);
     ctx.fillRect(canvas.width - 40, 0, 5, canvas.height);
 
-    // Moving center road lines
+    // Center lines
     ctx.fillStyle = "#fff";
     for (let i = -40; i < canvas.height; i += 40) {
         ctx.fillRect(canvas.width / 2 - 3, i + roadOffset, 6, 20);
     }
 
-    // 5. Draw Player Neon Car
+    // Player Car
     ctx.shadowColor = "#00fff2";
     ctx.shadowBlur = 12;
     ctx.fillStyle = "#00fff2";
@@ -244,7 +236,7 @@ function gameLoop() {
     ctx.fillRect(carX + 4, carY, 6, 4);
     ctx.fillRect(carX + carWidth - 10, carY, 6, 4);
 
-    // 6. Draw Obstacle Neon Car
+    // Obstacle Car
     ctx.shadowColor = "#ff0055";
     ctx.shadowBlur = 12;
     ctx.fillStyle = "#ff0055";
@@ -253,7 +245,7 @@ function gameLoop() {
     ctx.fillStyle = "#111";
     ctx.fillRect(obstacleX + 5, obstacleY + 45, obstacleWidth - 10, 15);
 
-    // 7. Render Score Interface
+    // UI Score
     ctx.shadowBlur = 0;
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fillRect(20, 15, 140, 40);
