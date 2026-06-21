@@ -52,3 +52,22 @@ func activate_booster():
 func deactivate_booster():
 	is_boosting = false
 	print("Boost over.")
+# GlobalManager.gd (Autoloaded script)
+extends Node
+
+var total_coins: int = 0
+var current_level: int = 1
+var engine_upgrade_level: int = 1
+
+func add_coins(amount: int):
+	total_coins += amount
+	print("Coins: ", total_coins)
+
+func buy_engine_upgrade():
+	var cost = engine_upgrade_level * 200 # Costs more each time
+	if total_coins >= cost:
+		total_coins -= cost
+		engine_upgrade_level += 1
+		print("Engine Upgraded to Level ", engine_upgrade_level)
+	else:
+		print("Not enough coins!")
