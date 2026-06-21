@@ -24,11 +24,11 @@
             -webkit-user-select: none;
         }
         .header-title {
-            margin: 10px 0;
-            font-size: 1.6rem;
+            margin: 8px 0;
+            font-size: 1.4rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 4px;
             color: #00fff2;
             text-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
             text-align: center;
@@ -38,7 +38,7 @@
             border-radius: 16px;
             overflow: hidden;
             width: 92%;
-            max-width: 450px;
+            max-width: 420px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
             border: 2px solid #00fff2;
             background: #090a14;
@@ -64,29 +64,29 @@
             border-radius: 30px;
             cursor: pointer;
             box-shadow: 0 0 20px rgba(0, 255, 242, 0.5);
-            z-index: 10;
+            z-index: 20;
         }
         .controls-pad {
             display: flex;
             justify-content: space-between;
             width: 92%;
-            max-width: 450px;
-            margin-top: 25px;
-            margin-bottom: 20px;
-            padding: 0 10px;
+            max-width: 420px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            padding: 0 5px;
         }
         .btn-group {
             display: flex;
-            gap: 16px;
+            gap: 12px;
         }
         .btn {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             background: rgba(9, 10, 20, 0.8);
             border: 2px solid #00fff2;
             border-radius: 16px;
             color: #00fff2;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
@@ -117,7 +117,7 @@
 
 <div class="container">
     <canvas id="gameCanvas" width="500" height="450"></canvas>
-    <button id="restartBtn" onclick="resetGame()">Drive Again</button>
+    <button id="restartBtn">Drive Again</button>
 </div>
 
 <div class="controls-pad">
@@ -235,7 +235,7 @@ window.addEventListener('DOMContentLoaded', () => {
     addEvent("accelBtn", "mousedown", "mouseup", (v) => touchAccel = v);
     addEvent("brakeBtn", "mousedown", "mouseup", (v) => touchBrake = v);
 
-    window.resetGame = function() {
+    function resetGame() {
         initAudio();
         score = 0;
         gameOver = false;
@@ -248,7 +248,13 @@ window.addEventListener('DOMContentLoaded', () => {
         baseSpeed = 4;
         restartBtn.style.display = "none";
         gameLoop();
-    };
+    }
+
+    restartBtn.addEventListener("click", resetGame);
+    restartBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        resetGame();
+    });
 
     function gameLoop() {
         if (gameOver) {
@@ -352,3 +358,110 @@ window.addEventListener('DOMContentLoaded', () => {
 
             ctx.fillStyle = (Math.floor(Date.now() / 300) % 2 === 0) ? "#ff3b30" : "rgba(255,255,255,0.05)";
             ctx.beginPath();
+            ctx.arc(drawX + b.w / 2, b.y - 14, 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // HIGHWAY CORRIDOR
+        let roadGrad = ctx.createLinearGradient(135, 0, canvas.width - 135, 0);
+        roadGrad.addColorStop(0, '#0c0e18');
+        roadGrad.addColorStop(0.5, '#16192e');
+        roadGrad.addColorStop(1, '#0c0e18');
+        ctx.fillStyle = roadGrad;
+        ctx.fillRect(135, 0, canvas.width - 270, canvas.height);
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.fillRect(135, 0, 3, canvas.height);
+        ctx.fillRect(canvas.width - 138, 0, 3, canvas.height);
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+        for (let i = -60; i < canvas.height; i += 60) {
+            ctx.fillRect(canvas.width / 2 - 1.5, i + roadOffset, 3, 30);
+        }
+
+        // ENERGY COIN
+        ctx.fillStyle = "#ffcc00";
+        ctx.beginPath();
+        ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // REAR EXHAUST FLAMES (IF ACCELERATING)
+        if (touchAccel) {
+            ctx.fillStyle = "rgba(0, 160, 255, 0.4)";
+            ctx.fillRect(carX + 5, carY + carH, 4, 12);
+            ctx.fillRect(carX + carW - 9, carY + carH, 4, 12);
+        }
+
+        // PLAYER CAR (PERFECTLY STRAIGHT CHASSIS)
+        let carGrad = ctx.createLinearGradient(carX, carY, carX + carW, carY);
+        carGrad.addColorStop(0, '#2f80ed');
+        carGrad.addColorStop(1, '#00c6ff');
+        ctx.fillStyle = carGrad;
+        ctx.beginPath();
+        ctx.moveTo(carX + 6, carY); 
+        ctx.lineTo(carX + carW - 6, carY);
+        ctx.lineTo(carX + carW, carY + 14); 
+        ctx.lineTo(carX + carW, carY + carH - 6); 
+        ctx.lineTo(carX + carW - 3, carY + carH);
+        ctx.lineTo(carX + 3, carY + carH);
+        ctx.lineTo(carX, carY + carH - 6);
+        ctx.lineTo(carX, carY + 14);
+        ctx.closePath();
+        ctx.fill();
+
+        // WINDSHIELD & COCKPIT
+        ctx.fillStyle = "#090a12";
+        ctx.beginPath();
+        ctx.moveTo(carX + 6, carY + 16);
+        ctx.lineTo(carX + carW - 6, carY + 16);
+        ctx.lineTo(carX + carW - 4, carY + 36);
+        ctx.lineTo(carX + 4, carY + 36);
+        ctx.closePath();
+        ctx.fill();
+
+        // HEADLIGHTS
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(carX + 3, carY + 1, 5, 2);
+        ctx.fillRect(carX + carW - 8, carY + 1, 5, 2);
+
+        // BRAKE LIGHTS
+        ctx.fillStyle = touchBrake ? "#ff3b30" : "#b2131b";
+        ctx.fillRect(carX + 4, carY + carH - 3, carW - 8, 2);
+
+        // RIVAL SEDAN (OBSTACLE)
+        let obsGrad = ctx.createLinearGradient(obsX, obsY, obsX + obsW, obsY);
+        obsGrad.addColorStop(0, '#8e2de2');
+        obsGrad.addColorStop(1, '#4a00e0');
+        ctx.fillStyle = obsGrad;
+        ctx.fillRect(obsX, obsY, obsW, obsH);
+
+        ctx.fillStyle = "#0c0d15";
+        ctx.fillRect(obsX + 4, obsY + 18, obsW - 8, 20);
+
+        ctx.fillStyle = "#ff2d55";
+        ctx.fillRect(obsX + 2, obsY + obsH - 3, 5, 2);
+        ctx.fillRect(obsX + obsW - 7, obsY + obsH - 3, 5, 2);
+
+        // HUD OVERLAY
+        ctx.fillStyle = "rgba(10, 12, 26, 0.75)";
+        ctx.fillRect(15, 15, 125, 45);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        ctx.strokeRect(15, 15, 125, 45);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 11px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE: " + score, 25, 32);
+        
+        ctx.fillStyle = "#00fff2";
+        ctx.fillText("HI-SCORE: " + highScore, 25, 48);
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+});
+</script>
+
+</body>
+</html>
