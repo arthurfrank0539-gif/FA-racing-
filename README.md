@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Rider - Arcade Edition</title>
+    <title>Neon Rider</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
@@ -44,32 +44,6 @@
             width: 100%;
             height: auto;
             background: #090a14;
-        }
-        #audioOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(9, 10, 20, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-        }
-        #audioBtn {
-            padding: 16px 36px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: #00fff2;
-            color: #05060b;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 0 25px rgba(0, 255, 242, 0.4);
         }
         #restartBtn {
             display: none;
@@ -128,9 +102,6 @@
 
 <h1>NEON RIDER</h1>
 <div class="container">
-    <div id="audioOverlay">
-        <button id="audioBtn">Start Engine</button>
-    </div>
     <canvas id="gameCanvas" width="500" height="450"></canvas>
     <button id="restartBtn" onclick="resetGame()">Drive Again</button>
 </div>
@@ -147,17 +118,14 @@
 </div>
 
 <script>
-window.addEventListener('load', function() {
+function startNeonRider() {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const restartBtn = document.getElementById("restartBtn");
-    const audioOverlay = document.getElementById("audioOverlay");
-    const audioBtn = document.getElementById("audioBtn");
 
     let score = 0;
     let highScore = localStorage.getItem("neonRider_highScore") ? parseInt(localStorage.getItem("neonRider_highScore")) : 0;
     let gameOver = false;
-    let gameStarted = false;
     let roadOffset = 0;
     let baseSpeed = 4;
     let currentSpeed = baseSpeed;
@@ -190,7 +158,7 @@ window.addEventListener('load', function() {
     let touchAccel = false;
     let touchBrake = false;
 
-    // --- STRONGER AUDIO INITIALIZATION SYSTEM ---
+    // --- SEAMLESS WEB AUDIO ENGINE ---
     let audioCtx = null;
 
     function initAudio() {
@@ -202,22 +170,6 @@ window.addEventListener('load', function() {
         }
     }
 
-    // Force unlock audio context on initial menu click interaction
-    audioBtn.addEventListener("click", function() {
-        initAudio();
-        audioOverlay.style.display = "none";
-        gameStarted = true;
-        // Play an initial starter chime confirmation tone
-        playSound('coin'); 
-    });
-    audioBtn.addEventListener("touchstart", function(e) {
-        e.preventDefault();
-        initAudio();
-        audioOverlay.style.display = "none";
-        gameStarted = true;
-        playSound('coin');
-    });
-
     function playSound(type) {
         if (!audioCtx || audioCtx.state === 'suspended') return;
         try {
@@ -228,8 +180,8 @@ window.addEventListener('load', function() {
 
             if (type === 'coin') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); // A5
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); 
                 gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
                 osc.start();
@@ -251,7 +203,7 @@ window.addEventListener('load', function() {
         if (!el) return;
         el.addEventListener(startEvt, (e) => { 
             e.preventDefault(); 
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            initAudio(); // Activates audio context on player touch
             setter(true); 
         });
         el.addEventListener(endEvt, (e) => { 
@@ -271,7 +223,7 @@ window.addEventListener('load', function() {
     addEvent("brakeBtn", "mousedown", "mouseup", (v) => touchBrake = v);
 
     window.resetGame = function() {
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        initAudio();
         score = 0;
         gameOver = false;
         carX = 230;
@@ -286,11 +238,6 @@ window.addEventListener('load', function() {
     };
 
     function gameLoop() {
-        if (!gameStarted) {
-            requestAnimationFrame(gameLoop);
-            return;
-        }
-
         if (gameOver) {
             ctx.fillStyle = "rgba(10, 11, 21, 0.95)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -322,7 +269,6 @@ window.addEventListener('load', function() {
         roadOffset += currentSpeed;
         if (roadOffset > 60) roadOffset = 0;
 
-        // Enemy Speed Variance & Movement Path Tracking
         obsY += currentSpeed * obsSpeedModifier;
         obsX += obsDirection * 0.8;
         if (obsX < 140 || obsX > canvas.width - 140 - obsW) {
@@ -488,7 +434,14 @@ window.addEventListener('load', function() {
     }
 
     gameLoop();
-});
+}
+
+// Fail-safe execution loader
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    startNeonRider();
+} else {
+    window.addEventListener("DOMContentLoaded", startNeonRider);
+}
 </script>
 
 </body>
