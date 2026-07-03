@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Sprint GP</title>
+    <title>Neon Sprint GP: 15 Stages</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         * {
@@ -24,14 +24,22 @@
             -webkit-user-select: none;
         }
         .header-title {
-            margin: 15px 0 10px 0;
-            font-size: 1.6rem;
+            margin: 10px 0 5px 0;
+            font-size: 1.4rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 6px;
+            letter-spacing: 4px;
             color: #00fff2;
             text-shadow: 0 0 15px rgba(0, 255, 242, 0.6);
             text-align: center;
+        }
+        .level-badge {
+            font-size: 0.9rem;
+            color: #ffb74d;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
         .container {
             position: relative;
@@ -49,13 +57,13 @@
             height: auto;
             background: #090a14;
         }
-        #restartBtn {
+        #nextLevelBtn {
             display: none;
             position: absolute;
-            top: 60%;
+            top: 65%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 16px 36px;
+            padding: 16px 32px;
             font-size: 1.1rem;
             font-weight: 700;
             letter-spacing: 2px;
@@ -74,44 +82,39 @@
             align-items: center;
             width: 94%;
             max-width: 430px;
-            margin-top: 15px;
-            margin-bottom: 15px;
-            padding: 12px;
+            margin-top: 12px;
+            margin-bottom: 12px;
+            padding: 10px;
             background: rgba(13, 15, 30, 0.9);
             border: 1px solid rgba(0, 255, 242, 0.2);
             border-radius: 24px;
-            box-shadow: inset 0 0 15px rgba(0, 255, 242, 0.05);
         }
         .btn-group {
             display: flex;
-            gap: 16px;
+            gap: 14px;
         }
         .btn {
-            width: 68px;
-            height: 68px;
+            width: 64px;
+            height: 64px;
             background: linear-gradient(135deg, #12152a 0%, #0a0c18 100%);
             border: 2px solid #00fff2;
             border-radius: 20px;
             color: #00fff2;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             touch-action: none;
-            box-shadow: 0 6px 12px rgba(0, 255, 242, 0.15);
-            transition: transform 0.05s;
         }
         .btn:active {
             background: #00fff2;
             color: #090a14;
             box-shadow: 0 0 25px #00fff2;
-            transform: scale(0.95);
         }
         .btn-action {
             color: #ff2d55;
             border-color: #ff2d55;
-            box-shadow: 0 6px 12px rgba(255, 45, 85, 0.15);
         }
         .btn-action:active {
             background: #ff2d55;
@@ -122,11 +125,12 @@
 </head>
 <body>
 
-<div class="header-title">Neon Sprint</div>
+<div class="header-title">Neon Sprint GP</div>
+<div class="level-badge" id="levelNameDisplay">Stage 1: Sector Zero</div>
 
 <div class="container">
     <canvas id="gameCanvas" width="500" height="450"></canvas>
-    <button id="restartBtn">Race Again</button>
+    <button id="nextLevelBtn">Next Stage</button>
 </div>
 
 <div class="controls-pad">
@@ -141,35 +145,50 @@
 </div>
 
 <script>
-function startNeonRider() {
+function startNeonChampionship() {
     const canvas = document.getElementById("gameCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const restartBtn = document.getElementById("restartBtn");
+    const nextLevelBtn = document.getElementById("nextLevelBtn");
+    const levelNameDisplay = document.getElementById("levelNameDisplay");
 
-    const TOTAL_DISTANCE = 12000; 
+    // 15 Level Campaign Matrix Config
+    const levelsConfig = [
+        { name: "Stage 1: Sector Zero", distance: 8000, baseSpeed: 5.5, aiAggression: 0.03, theme: "#00fff2" },
+        { name: "Stage 2: Grid City", distance: 9000, baseSpeed: 6.0, aiAggression: 0.04, theme: "#ff00bb" },
+        { name: "Stage 3: Cyber Basin", distance: 10000, baseSpeed: 6.5, aiAggression: 0.04, theme: "#bc00ff" },
+        { name: "Stage 4: Laser Highway", distance: 11000, baseSpeed: 7.0, aiAggression: 0.05, theme: "#00ff66" },
+        { name: "Stage 5: Tokyo Grid", distance: 12000, baseSpeed: 7.5, aiAggression: 0.05, theme: "#ffff00" },
+        { name: "Stage 6: Synth Outpost", distance: 13000, baseSpeed: 8.0, aiAggression: 0.06, theme: "#ff5500" },
+        { name: "Stage 7: Overdrive Pass", distance: 14000, baseSpeed: 8.5, aiAggression: 0.06, theme: "#00ffff" },
+        { name: "Stage 8: Matrix Hub", distance: 15000, baseSpeed: 9.0, aiAggression: 0.07, theme: "#ff0055" },
+        { name: "Stage 9: Vector Drift", distance: 16000, baseSpeed: 9.5, aiAggression: 0.07, theme: "#aa00ff" },
+        { name: "Stage 10: Neon Core", distance: 17000, baseSpeed: 10.0, aiAggression: 0.08, theme: "#33ff00" },
+        { name: "Stage 11: Zenith Route", distance: 18000, baseSpeed: 10.5, aiAggression: 0.08, theme: "#0088ff" },
+        { name: "Stage 12: Velocity Valley", distance: 19000, baseSpeed: 11.0, aiAggression: 0.09, theme: "#ff00aa" },
+        { name: "Stage 13: Cosmic Loop", distance: 20000, baseSpeed: 11.5, aiAggression: 0.09, theme: "#ccff00" },
+        { name: "Stage 14: Quantum Slipway", distance: 22000, baseSpeed: 12.0, aiAggression: 0.10, theme: "#ff3300" },
+        { name: "Stage 15: Grand Finale Grand Prix", distance: 25000, baseSpeed: 13.0, aiAggression: 0.12, theme: "#ffffff" }
+    ];
+
+    let currentLevelIdx = 0;
     let score = 0;
     let gameOver = false;
     let finishState = ""; 
     let roadOffset = 0;
-    let baseSpeed = 6;
-    let currentSpeed = baseSpeed;
     let playerProgress = 0;
+    let cameraProgress = 0;
 
-    // Player Visual Tracking
     let carX = 232;
     const carW = 34;
     const carH = 62;
 
-    // Track Camera Anchor Position (Smoothes out when player hits first place)
-    let cameraProgress = 0;
-
-    // Configured competent AI drivers close together
+    // AI Racers Profile Engine
     let racers = [
         { id: "Player", name: "YOU", progress: 0, speedModifier: 1.0, isPlayer: true, x: 232, color1: '#00c6ff', color2: '#0072ff' },
-        { id: "AI1", name: "VIOLET", progress: 180, speedModifier: 0.98, x: 160, color1: '#7b1fa2', color2: '#e040fb' },
-        { id: "AI2", name: "ORANGE", progress: 100, speedModifier: 1.02, x: 305, color1: '#f57c00', color2: '#ffb74d' },
-        { id: "AI3", name: "GREEN", progress: 240, speedModifier: 0.96, x: 232, color1: '#388e3c', color2: '#69f0ae' }
+        { id: "AI1", name: "VIOLET", progress: 160, speedModifier: 0.98, x: 160, color1: '#7b1fa2', color2: '#e040fb' },
+        { id: "AI2", name: "ORANGE", progress: 80, speedModifier: 1.01, x: 305, color1: '#f57c00', color2: '#ffb74d' },
+        { id: "AI3", name: "GREEN", progress: 220, speedModifier: 0.96, x: 232, color1: '#388e3c', color2: '#69f0ae' }
     ];
 
     let coinX = 145 + Math.random() * (210 - 18);
@@ -177,16 +196,13 @@ function startNeonRider() {
     const coinSize = 18;
 
     let buildings = [
-        { leftSide: true, xOffset: 8, y: 0, w: 85, h: 200, accentColor: "#00fff2" },
-        { leftSide: true, xOffset: 18, y: 250, w: 75, h: 150, accentColor: "#ff00bb" },
-        { leftSide: false, xOffset: 8, y: 50, w: 85, h: 220, accentColor: "#bc00ff" },
-        { leftSide: false, xOffset: 20, y: 300, w: 70, h: 160, accentColor: "#00ff66" }
+        { leftSide: true, xOffset: 8, y: 0, w: 85, h: 200 },
+        { leftSide: true, xOffset: 18, y: 250, w: 75, h: 150 },
+        { leftSide: false, xOffset: 8, y: 50, w: 85, h: 220 },
+        { leftSide: false, xOffset: 20, y: 300, w: 70, h: 160 }
     ];
 
-    let touchLeft = false;
-    let touchRight = false;
-    let touchAccel = false;
-    let touchBrake = false;
+    let touchLeft = false, touchRight = false, touchAccel = false, touchBrake = false;
 
     function addEvent(id, startEvt, endEvt, setter) {
         const el = document.getElementById(id);
@@ -204,8 +220,16 @@ function startNeonRider() {
     addEvent("accelBtn", "mousedown", "mouseup", (v) => touchAccel = v);
     addEvent("brakeBtn", "mousedown", "mouseup", (v) => touchBrake = v);
 
-    function resetGame() {
-        score = 0;
+    function loadLevel(idx) {
+        if(idx >= levelsConfig.length) {
+            finishState = "CHAMPIONSHIP COMPLETED!";
+            gameOver = true;
+            return;
+        }
+        currentLevelIdx = idx;
+        let cfg = levelsConfig[currentLevelIdx];
+        levelNameDisplay.textContent = cfg.name;
+
         gameOver = false;
         finishState = "";
         playerProgress = 0;
@@ -213,224 +237,194 @@ function startNeonRider() {
         carX = 232;
 
         racers[0].progress = 0;
-        racers[1].progress = 140;
-        racers[2].progress = 80;
-        racers[3].progress = 200;
+        racers[1].progress = 150;
+        racers[2].progress = 90;
+        racers[3].progress = 210;
 
         coinY = -150;
-        if (restartBtn) restartBtn.style.display = "none";
+        nextLevelBtn.style.display = "none";
     }
 
-    if (restartBtn) {
-        restartBtn.addEventListener("click", resetGame);
-        restartBtn.addEventListener("touchstart", (e) => { e.preventDefault(); resetGame(); });
-    }
+    nextLevelBtn.addEventListener("click", () => {
+        if (finishState.includes("QUALIFIED") || finishState.includes("COMPLETED")) {
+            loadLevel(currentLevelIdx + 1);
+        } else {
+            loadLevel(currentLevelIdx); // Retry level
+        }
+    });
 
     function gameLoop() {
-        try {
-            if (!gameOver) {
-                if (touchAccel) currentSpeed = baseSpeed * 1.8;
-                else if (touchBrake) currentSpeed = baseSpeed * 0.3;
-                else currentSpeed = baseSpeed;
+        let cfg = levelsConfig[currentLevelIdx];
+        let runningBaseSpeed = cfg.baseSpeed;
 
-                if (touchLeft && carX > 140) carX -= 5.5;
-                if (touchRight && carX < canvas.width - 140 - carW) carX += 5.5;
+        if (!gameOver) {
+            let currentSpeed = runningBaseSpeed;
+            if (touchAccel) currentSpeed = runningBaseSpeed * 1.7;
+            else if (touchBrake) currentSpeed = runningBaseSpeed * 0.3;
 
-                playerProgress += currentSpeed;
-                racers[0].progress = playerProgress;
-                racers[0].x = carX;
+            if (touchLeft && carX > 140) carX -= 5.5;
+            if (touchRight && carX < canvas.width - 140 - carW) carX += 5.5;
 
-                // Move AI drivers with adaptive catching speed (Rubber Banding)
-                for (let i = 1; i < racers.length; i++) {
-                    let ai = racers[i];
-                    let distanceBehind = playerProgress - ai.progress;
-                    
-                    let speedFactor = ai.speedModifier;
-                    // If AI falls far out of view behind player, bump its speed up to catch up
-                    if (distanceBehind > 250) speedFactor += 0.05; 
-                    // If AI gets too far ahead, ease its speed down
-                    if (distanceBehind < -300) speedFactor -= 0.04;
+            playerProgress += currentSpeed;
+            racers[0].progress = playerProgress;
+            racers[0].x = carX;
 
-                    let aiSpeed = (baseSpeed + (Math.sin(playerProgress * 0.003 + i) * 1.1)) * speedFactor;
-                    ai.progress += aiSpeed;
-                    
-                    // Add micro steering adjustments
-                    if(i === 1) ai.x = 160 + Math.sin(playerProgress * 0.002) * 12;
-                    if(i === 2) ai.x = 305 + Math.cos(playerProgress * 0.002) * 12;
-                }
+            // Move AI drivers using updated rubber-banding tracking logic
+            for (let i = 1; i < racers.length; i++) {
+                let ai = racers[i];
+                let distanceBehind = playerProgress - ai.progress;
+                
+                let dynamicModifier = ai.speedModifier;
+                if (distanceBehind > 220) dynamicModifier += (cfg.aiAggression + 0.05); 
+                if (distanceBehind < -260) dynamicModifier -= (cfg.aiAggression);
 
-                // Dynamic camera: centers on player, but scales downward slightly when in first place
-                let leadProgress = Math.max(...racers.map(r => r.progress));
-                if (playerProgress >= leadProgress - 50) {
-                    cameraProgress = playerProgress - 120; // Lower camera offset keeps trailing AI on-screen
+                let aiSpeed = (runningBaseSpeed + (Math.sin(playerProgress * 0.003 + i) * 1.2)) * dynamicModifier;
+                ai.progress += aiSpeed;
+                
+                if(i === 1) ai.x = 160 + Math.sin(playerProgress * 0.002) * 14;
+                if(i === 2) ai.x = 305 + Math.cos(playerProgress * 0.002) * 14;
+            }
+
+            // Fixed camera rendering anchor windows
+            let leadProgress = Math.max(...racers.map(r => r.progress));
+            if (playerProgress >= leadProgress - 50) {
+                cameraProgress = playerProgress - 120;
+            } else {
+                cameraProgress = playerProgress - 180;
+            }
+
+            roadOffset += currentSpeed;
+            if (roadOffset > 60) roadOffset = 0;
+
+            // Handle level completion ranking checks
+            if (playerProgress >= cfg.distance) {
+                gameOver = true;
+                let standingsCheck = [...racers].sort((a, b) => b.progress - a.progress);
+                let finalRank = standingsCheck.findIndex(r => r.isPlayer) + 1;
+                
+                if (finalRank <= 3) {
+                    finishState = "STAGE CLEAR! RANK: " + finalRank;
+                    nextLevelBtn.textContent = currentLevelIdx === 14 ? "View Credits" : "Next Stage";
                 } else {
-                    cameraProgress = playerProgress - 180;
+                    finishState = "FAILED! MUST BE TOP 3";
+                    nextLevelBtn.textContent = "Retry Stage";
                 }
-
-                roadOffset += currentSpeed;
-                if (roadOffset > 60) roadOffset = 0;
-
-                if (playerProgress >= TOTAL_DISTANCE) {
-                    gameOver = true;
-                    let standingsCheck = [...racers].sort((a, b) => b.progress - a.progress);
-                    let finalRank = standingsCheck.findIndex(r => r.isPlayer) + 1;
-                    let suffixes = ["ST", "ND", "RD", "TH"];
-                    finishState = "FINISHED: " + finalRank + suffixes[finalRank - 1] + " PLACE!";
-                }
-
-                coinY += currentSpeed;
-                let playerRenderY = canvas.height - (playerProgress - cameraProgress) - carH;
-                if (coinY > canvas.height) {
-                    coinY = -150 - Math.random() * 250;
-                    coinX = 145 + Math.random() * (210 - coinSize);
-                }
-                if (carX < coinX + coinSize && carX + carW > coinX && playerRenderY < coinY + coinSize && playerRenderY + carH > coinY) {
-                    score++;
-                    coinY = -200; 
-                    coinX = 145 + Math.random() * (210 - coinSize);
-                }
-
-                buildings.forEach(b => {
-                    b.y += currentSpeed * 0.4;
-                    if (b.y > canvas.height) b.y = -b.h;
-                });
+                nextLevelBtn.style.display = "block";
             }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            coinY += currentSpeed;
+            let playerRenderY = canvas.height - (playerProgress - cameraProgress) - carH;
+            if (coinY > canvas.height) {
+                coinY = -150 - Math.random() * 250;
+                coinX = 145 + Math.random() * (210 - coinSize);
+            }
+            if (carX < coinX + coinSize && carX + carW > coinX && playerRenderY < coinY + coinSize && playerRenderY + carH > coinY) {
+                score++;
+                coinY = -200; 
+                coinX = 145 + Math.random() * (210 - coinSize);
+            }
 
-            // Sidewalk Decor
             buildings.forEach(b => {
-                let drawX = b.leftSide ? b.xOffset : canvas.width - b.w - b.xOffset;
-                ctx.fillStyle = "#111222";
-                ctx.fillRect(drawX, b.y, b.w, b.h);
-                ctx.fillStyle = b.accentColor;
-                ctx.fillRect(drawX, b.y, b.w, 3);
+                b.y += currentSpeed * 0.4;
+                if (b.y > canvas.height) b.y = -b.h;
             });
+        }
 
-            // Road Track Surface
-            let roadGrad = ctx.createLinearGradient(135, 0, canvas.width - 135, 0);
-            roadGrad.addColorStop(0, '#07080e');
-            roadGrad.addColorStop(0.5, '#121426');
-            roadGrad.addColorStop(1, '#07080e');
-            ctx.fillStyle = roadGrad;
-            ctx.fillRect(135, 0, canvas.width - 270, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Left & Right Neon Borders
-            ctx.fillStyle = "rgba(0, 255, 242, 0.45)";
-            ctx.fillRect(135, 0, 2, canvas.height);
-            ctx.fillRect(canvas.width - 137, 0, 2, canvas.height);
+        // Sidebar scenery
+        buildings.forEach(b => {
+            let drawX = b.leftSide ? b.xOffset : canvas.width - b.w - b.xOffset;
+            ctx.fillStyle = "#111222";
+            ctx.fillRect(drawX, b.y, b.w, b.h);
+            ctx.fillStyle = cfg.theme;
+            ctx.fillRect(drawX, b.y, b.w, 3);
+        });
 
-            // Mid Lanes Lanes
-            ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-            for (let i = -60; i < canvas.height; i += 60) {
-                ctx.fillRect(canvas.width / 2 - 1, i + roadOffset, 2, 30);
-            }
+        // Main track rendering
+        let roadGrad = ctx.createLinearGradient(135, 0, canvas.width - 135, 0);
+        roadGrad.addColorStop(0, '#07080e');
+        roadGrad.addColorStop(0.5, '#121426');
+        roadGrad.addColorStop(1, '#07080e');
+        ctx.fillStyle = roadGrad;
+        ctx.fillRect(135, 0, canvas.width - 270, canvas.height);
 
-            // Finish line tracking
-            let remainingDist = TOTAL_DISTANCE - playerProgress;
-            let finishLineY = canvas.height - (TOTAL_DISTANCE - cameraProgress);
-            if (finishLineY > -50 && finishLineY < canvas.height) {
-                ctx.fillStyle = "#00fff2";
-                ctx.fillRect(135, finishLineY, canvas.width - 270, 14);
-            }
+        ctx.fillStyle = cfg.theme;
+        ctx.fillRect(135, 0, 2, canvas.height);
+        ctx.fillRect(canvas.width - 137, 0, 2, canvas.height);
 
-            // Yellow Goal Orb
+        ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+        for (let i = -60; i < canvas.height; i += 60) {
+            ctx.fillRect(canvas.width / 2 - 1, i + roadOffset, 2, 30);
+        }
+
+        let finishLineY = canvas.height - (cfg.distance - cameraProgress);
+        if (finishLineY > -50 && finishLineY < canvas.height) {
             ctx.fillStyle = "#ffcc00";
-            ctx.beginPath();
-            ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(135, finishLineY, canvas.width - 270, 16);
+        }
 
-            // --- FIXED ADVANCED RENDERING TRACK CAMERA ENGINE ---
-            racers.forEach(r => {
-                // Renders cars relative to the dynamic camera window
-                let renderY = canvas.height - (r.progress - cameraProgress) - carH;
+        ctx.fillStyle = "#ffcc00";
+        ctx.beginPath();
+        ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Render relative racing engine elements
+        racers.forEach(r => {
+            let renderY = canvas.height - (r.progress - cameraProgress) - carH;
+            if (renderY > -70 && renderY < canvas.height + 70) {
+                let cg = ctx.createLinearGradient(r.x, renderY, r.x + carW, renderY);
+                cg.addColorStop(0, r.color1);
+                cg.addColorStop(1, r.color2);
+                ctx.fillStyle = cg;
+                ctx.fillRect(r.x, renderY, carW, carH);
+
+                ctx.fillStyle = "#080911";
+                ctx.fillRect(r.x + 4, renderY + 12, carW - 8, 15);
                 
-                if (renderY > -70 && renderY < canvas.height + 70) {
-                    let cg = ctx.createLinearGradient(r.x, renderY, r.x + carW, renderY);
-                    cg.addColorStop(0, r.color1);
-                    cg.addColorStop(1, r.color2);
-                    ctx.fillStyle = cg;
-                    ctx.fillRect(r.x, renderY, carW, carH);
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(r.x + 3, renderY, 5, 2);
+                ctx.fillRect(r.x + carW - 8, renderY, 5, 2);
 
-                    // Windshield cockpit window
-                    ctx.fillStyle = "#080911";
-                    ctx.fillRect(r.x + 4, renderY + 12, carW - 8, 15);
-                    
-                    // Bright Headlights
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(r.x + 3, renderY, 5, 2);
-                    ctx.fillRect(r.x + carW - 8, renderY, 5, 2);
-
-                    // Opponent Labels
-                    if (!r.isPlayer) {
-                        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-                        ctx.font = "bold 10px sans-serif";
-                        ctx.fillText(r.name, r.x, renderY - 8);
-                    }
+                if (!r.isPlayer) {
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                    ctx.font = "bold 10px sans-serif";
+                    ctx.fillText(r.name, r.x, renderY - 8);
                 }
-            });
-
-            // Running metrics ranking
-            let standings = [...racers].sort((a, b) => b.progress - a.progress);
-            let playerRank = standings.findIndex(r => r.isPlayer) + 1;
-            let suffixes = ["ST", "ND", "RD", "TH"];
-            let rankStr = playerRank + suffixes[playerRank - 1];
-
-            // UI Data Dashboard Left Panel
-            ctx.fillStyle = "rgba(10, 12, 26, 0.9)";
-            ctx.fillRect(15, 15, 130, 62);
-            ctx.strokeStyle = "rgba(0, 255, 242, 0.25)";
-            ctx.strokeRect(15, 15, 130, 62);
-            
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 11px sans-serif";
-            let displayDist = Math.max(0, Math.floor(remainingDist / 10));
-            ctx.fillText("DIST TO GO: " + displayDist + " M", 22, 32);
-            ctx.fillText("POSITION: " + rankStr, 22, 48);
-            ctx.fillStyle = "#ffcc00";
-            ctx.fillText("CRYSTALS: " + score, 22, 64);
-
-            // Live Leaderboard HUD Right Box
-            ctx.fillStyle = "rgba(10, 12, 26, 0.9)";
-            ctx.fillRect(canvas.width - 115, 15, 100, 75);
-            ctx.strokeRect(canvas.width - 115, 15, 100, 75);
-
-            ctx.font = "9px sans-serif";
-            standings.forEach((st, idx) => {
-                ctx.fillStyle = st.isPlayer ? "#00fff2" : "#ffffff";
-                ctx.fillText((idx + 1) + ". " + st.name, canvas.width - 105, 31 + (idx * 14));
-            });
-
-            if (gameOver) {
-                ctx.fillStyle = "rgba(8, 9, 18, 0.96)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.fillStyle = "#00fff2";
-                ctx.font = "bold 26px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(finishState, canvas.width / 2, canvas.height / 2 - 20);
-                
-                ctx.fillStyle = "rgba(255,255,255,0.8)";
-                ctx.font = "16px sans-serif";
-                ctx.fillText("Final Crystals: " + score, canvas.width / 2, canvas.height / 2 + 15);
-                
-                if (restartBtn) restartBtn.style.display = "block";
             }
+        });
 
-        } catch(err) {}
+        // Process position logic metrics HUD
+        let standings = [...racers].sort((a, b) => b.progress - a.progress);
+        let playerRank = standings.findIndex(r => r.isPlayer) + 1;
+        let suffixes = ["ST", "ND", "RD", "TH"];
 
-        requestAnimationFrame(gameLoop);
-    }
+        ctx.fillStyle = "rgba(10, 12, 26, 0.9)";
+        ctx.fillRect(15, 15, 130, 62);
+        ctx.strokeStyle = cfg.theme;
+        ctx.strokeRect(15, 15, 130, 62);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 11px sans-serif";
+        let displayDist = Math.max(0, Math.floor((cfg.distance - playerProgress) / 10));
+        ctx.fillText("GOAL: " + displayDist + " M", 22, 32);
+        ctx.fillText("POS: " + playerRank + suffixes[playerRank - 1], 22, 48);
+        ctx.fillStyle = "#ffcc00";
+        ctx.fillText("CRYSTALS: " + score, 22, 64);
 
-    gameLoop();
-}
+        ctx.fillStyle = "rgba(10, 12, 26, 0.9)";
+        ctx.fillRect(canvas.width - 115, 15, 100, 75);
+        ctx.strokeRect(canvas.width - 115, 15, 100, 75);
 
-if (document.readyState === "complete" || document.readyState === "interactive") {
-    startNeonRider();
-} else {
-    window.addEventListener("DOMContentLoaded", startNeonRider);
-}
-</script>
+        ctx.font = "9px sans-serif";
+        standings.forEach((st, idx) => {
+            ctx.fillStyle = st.isPlayer ? "#00fff2" : "#ffffff";
+            ctx.fillText((idx + 1) + ". " + st.name, canvas.width - 105, 31 + (idx * 14));
+        });
 
-</body>
-</html>
+        if (gameOver) {
+            ctx.fillStyle = "rgba(8, 9, 18, 0.96)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = cfg.theme;
+            ctx
