@@ -154,7 +154,7 @@ function startNeonRider() {
     const carW = 34;
     const carH = 62;
 
-    // Simulated Opponents (Completely off-screen/invisible)
+    // Simulated Opponents (Completely hidden logic)
     let racers = [
         { id: "Player", name: "YOU", progress: 0, speedModifier: 1.0, isPlayer: true },
         { id: "AI1", name: "VIOLET", progress: 40, speedModifier: 0.98 },
@@ -244,88 +244,69 @@ function startNeonRider() {
 
         coinY = -150;
         if (restartBtn) restartBtn.style.display = "none";
-        gameLoop();
     }
 
     if (restartBtn) {
-        restartBtn.addEventListener("click", resetGame);
+        restartBtn.addEventListener("click", () => { resetGame(); });
         restartBtn.addEventListener("touchstart", (e) => { e.preventDefault(); resetGame(); });
     }
 
     function gameLoop() {
         try {
-            if (gameOver) {
-                ctx.fillStyle = "rgba(10, 11, 21, 0.96)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.fillStyle = "#00fff2";
-                ctx.font = "bold 26px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(finishState, canvas.width / 2, canvas.height / 2 - 30);
-                
-                ctx.fillStyle = "rgba(255,255,255,0.8)";
-                ctx.font = "16px sans-serif";
-                ctx.fillText("Energy Crystals Collected: " + score, canvas.width / 2, canvas.height / 2 + 10);
-                
-                if (restartBtn) restartBtn.style.display = "block";
-                return;
+            if (!gameOver) {
+                // Input checks
+                if (touchAccel) currentSpeed = baseSpeed * 1.8;
+                else if (touchBrake) currentSpeed = baseSpeed * 0.4;
+                else currentSpeed = baseSpeed;
+
+                if (touchLeft && carX > 140) carX -= 5;
+                if (touchRight && carX < canvas.width - 140 - carW) carX += 5;
+
+                playerProgress += currentSpeed;
+                racers[0].progress = playerProgress;
+
+                roadOffset += currentSpeed;
+                if (roadOffset > 60) roadOffset = 0;
+
+                // Background AI engine
+                for (let i = 1; i < racers.length; i++) {
+                    let ai = racers[i];
+                    let aiSpeed = (baseSpeed + (Math.sin(playerProgress * 0.002 + i) * 0.8)) * ai.speedModifier;
+                    ai.progress += aiSpeed;
+                }
+
+                // Check finish point rule
+                if (playerProgress >= TOTAL_DISTANCE) {
+                    gameOver = true;
+                    let standingsCheck = [...racers].sort((a, b) => b.progress - a.progress);
+                    let finalRank = standingsCheck.findIndex(r => r.isPlayer) + 1;
+                    let suffixes = ["ST", "ND", "RD", "TH"];
+                    finishState = "FINISHED: " + finalRank + suffixes[finalRank - 1] + " PLACE!";
+                }
+
+                // Coin progress mapping
+                coinY += currentSpeed;
+                if (coinY > canvas.height) {
+                    coinY = -150 - Math.random() * 250;
+                    coinX = 145 + Math.random() * (210 - coinSize);
+                }
+                if (carX < coinX + coinSize && carX + carW > coinX && carY < coinY + coinSize && carY + carH > coinY) {
+                    score++;
+                    playSound('coin');
+                    coinY = -200; 
+                    coinX = 145 + Math.random() * (210 - coinSize);
+                }
+
+                buildings.forEach(b => {
+                    b.y += currentSpeed * 0.4;
+                    if (b.y > canvas.height) b.y = -b.h;
+                });
             }
 
-            // Player Mechanics
-            if (touchAccel) currentSpeed = baseSpeed * 1.8;
-            else if (touchBrake) currentSpeed = baseSpeed * 0.4;
-            else currentSpeed = baseSpeed;
-
-            if (touchLeft && carX > 140) carX -= 5;
-            if (touchRight && carX < canvas.width - 140 - carW) carX += 5;
-
-            playerProgress += currentSpeed;
-            racers[0].progress = playerProgress;
-
-            roadOffset += currentSpeed;
-            if (roadOffset > 60) roadOffset = 0;
-
-            // Background AI Progression Engine
-            for (let i = 1; i < racers.length; i++) {
-                let ai = racers[i];
-                let aiSpeed = (baseSpeed + (Math.sin(playerProgress * 0.002 + i) * 0.8)) * ai.speedModifier;
-                ai.progress += aiSpeed;
-            }
-
-            // Real-time Standings Calculations
-            let standings = [...racers].sort((a, b) => b.progress - a.progress);
-            let playerRank = standings.findIndex(r => r.isPlayer) + 1;
-            let suffixes = ["ST", "ND", "RD", "TH"];
-            let rankStr = playerRank + suffixes[playerRank - 1];
-
-            // Point Target Goal Verification
-            if (playerProgress >= TOTAL_DISTANCE) {
-                gameOver = true;
-                finishState = "LINE CROSSED: " + rankStr + " PLACE!";
-            }
-
-            // Coin Track Collection
-            coinY += currentSpeed;
-            if (coinY > canvas.height) {
-                coinY = -150 - Math.random() * 250;
-                coinX = 145 + Math.random() * (210 - coinSize);
-            }
-            if (carX < coinX + coinSize && carX + carW > coinX && carY < coinY + coinSize && carY + carH > coinY) {
-                score++;
-                playSound('coin');
-                coinY = -200; 
-                coinX = 145 + Math.random() * (210 - coinSize);
-            }
-
-            buildings.forEach(b => {
-                b.y += currentSpeed * 0.4;
-                if (b.y > canvas.height) b.y = -b.h;
-            });
-
-            // RENDERING PIPELINE
+            // --- RENDERING BLOCK ---
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Sidewalk Architecture Ambient Background
+            // Background buildings
             buildings.forEach(b => {
                 let drawX = b.leftSide ? b.xOffset : canvas.width - b.w - b.xOffset;
                 ctx.fillStyle = "#141526";
@@ -334,7 +315,7 @@ function startNeonRider() {
                 ctx.fillRect(drawX, b.y, b.w, 3);
             });
 
-            // Street Floor Matte
+            // Road track painting
             let roadGrad = ctx.createLinearGradient(135, 0, canvas.width - 135, 0);
             roadGrad.addColorStop(0, '#0a0b14');
             roadGrad.addColorStop(0.5, '#131526');
@@ -342,35 +323,32 @@ function startNeonRider() {
             ctx.fillStyle = roadGrad;
             ctx.fillRect(135, 0, canvas.width - 270, canvas.height);
 
-            // Side Boundary Rails
+            // Visual layout guides
             ctx.fillStyle = "rgba(0, 255, 242, 0.4)";
             ctx.fillRect(135, 0, 2, canvas.height);
             ctx.fillRect(canvas.width - 137, 0, 2, canvas.height);
 
-            // Center Lanes
+            // Animated center track markers
             ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
             for (let i = -60; i < canvas.height; i += 60) {
                 ctx.fillRect(canvas.width / 2 - 1, i + roadOffset, 2, 30);
             }
 
-            // Projected Target Finish Line
+            // Approaching point line drawing
             let remainingDist = TOTAL_DISTANCE - playerProgress;
             if (remainingDist < canvas.height) {
                 let finishY = carY - remainingDist;
                 ctx.fillStyle = "#00fff2";
-                ctx.shadowColor = "#00fff2";
-                ctx.shadowBlur = 15;
                 ctx.fillRect(135, finishY, canvas.width - 270, 10);
-                ctx.shadowBlur = 0;
             }
 
-            // Floating Target Energy Orbs
+            // Energy floating element
             ctx.fillStyle = "#ffcc00";
             ctx.beginPath();
             ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Player Chasis Block Paint
+            // Player sprite block
             let cg = ctx.createLinearGradient(carX, carY, carX + carW, carY);
             cg.addColorStop(0, '#2f80ed');
             cg.addColorStop(1, '#00c6ff');
@@ -379,12 +357,17 @@ function startNeonRider() {
 
             ctx.fillStyle = "#090a12";
             ctx.fillRect(carX + 4, carY + 12, carW - 8, 14);
-
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(carX + 3, carY, 5, 2);
             ctx.fillRect(carX + carW - 8, carY, 5, 2);
 
-            // Telemetry Deck Panel
+            // Compute current leaderboard listings
+            let standings = [...racers].sort((a, b) => b.progress - a.progress);
+            let playerRank = standings.findIndex(r => r.isPlayer) + 1;
+            let suffixes = ["ST", "ND", "RD", "TH"];
+            let rankStr = playerRank + suffixes[playerRank - 1];
+
+            // Primary HUD Panel
             ctx.fillStyle = "rgba(10, 12, 26, 0.85)";
             ctx.fillRect(15, 15, 130, 60);
             ctx.strokeStyle = "rgba(0, 255, 242, 0.2)";
@@ -398,7 +381,7 @@ function startNeonRider() {
             ctx.fillStyle = "#ffcc00";
             ctx.fillText("CRYSTALS: " + score, 22, 64);
 
-            // Live Remote Standing Tracker Map Grid
+            // Leaderboard Widget Panel
             ctx.fillStyle = "rgba(10, 12, 26, 0.85)";
             ctx.fillRect(canvas.width - 115, 15, 100, 75);
             ctx.strokeRect(canvas.width - 115, 15, 100, 75);
@@ -409,7 +392,24 @@ function startNeonRider() {
                 ctx.fillText((idx + 1) + ". " + st.name, canvas.width - 105, 30 + (idx * 14));
             });
 
-        } catch(gameErr) {}
+            // End game splash screen state overlay
+            if (gameOver) {
+                ctx.fillStyle = "rgba(10, 11, 21, 0.96)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = "#00fff2";
+                ctx.font = "bold 24px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(finishState, canvas.width / 2, canvas.height / 2 - 20);
+                
+                ctx.fillStyle = "rgba(255,255,255,0.8)";
+                ctx.font = "16px sans-serif";
+                ctx.fillText("Crystals Collected: " + score, canvas.width / 2, canvas.height / 2 + 15);
+                
+                if (restartBtn) restartBtn.style.display = "block";
+            }
+
+        } catch(err) {}
 
         requestAnimationFrame(gameLoop);
     }
