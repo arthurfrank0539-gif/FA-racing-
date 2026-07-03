@@ -154,18 +154,12 @@ function startNeonRider() {
     const carW = 34;
     const carH = 62;
 
-    // Background Simulating Racers (Hidden from screen rendering)
+    // Simulated Opponents (Completely off-screen/invisible)
     let racers = [
         { id: "Player", name: "YOU", progress: 0, speedModifier: 1.0, isPlayer: true },
         { id: "AI1", name: "VIOLET", progress: 40, speedModifier: 0.98 },
         { id: "AI2", name: "ORANGE", progress: 20, speedModifier: 1.01 },
         { id: "AI3", name: "GREEN", progress: 60, speedModifier: 0.95 }
-    ];
-
-    // Standard road obstacles (Neutral traffic blocks)
-    let obstacles = [
-        { x: 190, y: -150, w: 34, h: 62, speed: 2 },
-        { x: 280, y: -450, w: 34, h: 62, speed: 1.5 }
     ];
 
     let coinX = 140 + Math.random() * (220 - 18);
@@ -212,14 +206,6 @@ function startNeonRider() {
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.2);
-            } else if (type === 'crash') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(130, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(25, audioCtx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.45);
             }
         } catch(e) {}
     }
@@ -256,9 +242,6 @@ function startNeonRider() {
         racers[2].progress = 40 + Math.random() * 50;
         racers[3].progress = 100 + Math.random() * 30;
 
-        obstacles[0].y = -200; obstacles[0].x = 180;
-        obstacles[1].y = -500; obstacles[1].x = 280;
-
         coinY = -150;
         if (restartBtn) restartBtn.style.display = "none";
         gameLoop();
@@ -275,14 +258,14 @@ function startNeonRider() {
                 ctx.fillStyle = "rgba(10, 11, 21, 0.96)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                ctx.fillStyle = finishState.includes("CRASHED") ? "#ff2d55" : "#00fff2";
+                ctx.fillStyle = "#00fff2";
                 ctx.font = "bold 26px sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText(finishState, canvas.width / 2, canvas.height / 2 - 30);
                 
                 ctx.fillStyle = "rgba(255,255,255,0.8)";
                 ctx.font = "16px sans-serif";
-                ctx.fillText("Energy Crystals: " + score, canvas.width / 2, canvas.height / 2 + 10);
+                ctx.fillText("Energy Crystals Collected: " + score, canvas.width / 2, canvas.height / 2 + 10);
                 
                 if (restartBtn) restartBtn.style.display = "block";
                 return;
@@ -302,48 +285,26 @@ function startNeonRider() {
             roadOffset += currentSpeed;
             if (roadOffset > 60) roadOffset = 0;
 
-            // Background AI Progress Logic
+            // Background AI Progression Engine
             for (let i = 1; i < racers.length; i++) {
                 let ai = racers[i];
-                // AI speeds fluctuate slightly around base speed
                 let aiSpeed = (baseSpeed + (Math.sin(playerProgress * 0.002 + i) * 0.8)) * ai.speedModifier;
                 ai.progress += aiSpeed;
             }
 
-            // Standings & Leaderboard
+            // Real-time Standings Calculations
             let standings = [...racers].sort((a, b) => b.progress - a.progress);
             let playerRank = standings.findIndex(r => r.isPlayer) + 1;
             let suffixes = ["ST", "ND", "RD", "TH"];
             let rankStr = playerRank + suffixes[playerRank - 1];
 
-            // Check if anyone hit the finish line point
+            // Point Target Goal Verification
             if (playerProgress >= TOTAL_DISTANCE) {
                 gameOver = true;
-                finishState = "RACE FINISHED: " + rankStr + " PLACE!";
-            } else {
-                // If any AI crossed the absolute finish line point significantly ahead
-                standings.forEach(r => {
-                    if (r.progress >= TOTAL_DISTANCE && !r.isPlayer && playerProgress < TOTAL_DISTANCE) {
-                        // Keep game going until player crosses, but ranking locks
-                    }
-                });
+                finishState = "LINE CROSSED: " + rankStr + " PLACE!";
             }
 
-            // Traffic Obstacles Handling
-            obstacles.forEach(obs => {
-                obs.y += currentSpeed - obs.speed;
-                if (obs.y > canvas.height) {
-                    obs.y = -100 - Math.random() * 200;
-                    obs.x = 145 + Math.random() * (210 - obs.w);
-                }
-                if (carX < obs.x + obs.w && carX + carW > obs.x && carY < obs.y + obs.h && carY + carH > obs.y) {
-                    gameOver = true;
-                    finishState = "CRASHED";
-                    playSound('crash');
-                }
-            });
-
-            // Coin Collection
+            // Coin Track Collection
             coinY += currentSpeed;
             if (coinY > canvas.height) {
                 coinY = -150 - Math.random() * 250;
@@ -361,13 +322,107 @@ function startNeonRider() {
                 if (b.y > canvas.height) b.y = -b.h;
             });
 
-            // RENDER GRAPHICS
+            // RENDERING PIPELINE
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Buildings Background
+            // Sidewalk Architecture Ambient Background
             buildings.forEach(b => {
                 let drawX = b.leftSide ? b.xOffset : canvas.width - b.w - b.xOffset;
                 ctx.fillStyle = "#141526";
                 ctx.fillRect(drawX, b.y, b.w, b.h);
                 ctx.fillStyle = b.accentColor;
-                ctx.fillRect
+                ctx.fillRect(drawX, b.y, b.w, 3);
+            });
+
+            // Street Floor Matte
+            let roadGrad = ctx.createLinearGradient(135, 0, canvas.width - 135, 0);
+            roadGrad.addColorStop(0, '#0a0b14');
+            roadGrad.addColorStop(0.5, '#131526');
+            roadGrad.addColorStop(1, '#0a0b14');
+            ctx.fillStyle = roadGrad;
+            ctx.fillRect(135, 0, canvas.width - 270, canvas.height);
+
+            // Side Boundary Rails
+            ctx.fillStyle = "rgba(0, 255, 242, 0.4)";
+            ctx.fillRect(135, 0, 2, canvas.height);
+            ctx.fillRect(canvas.width - 137, 0, 2, canvas.height);
+
+            // Center Lanes
+            ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+            for (let i = -60; i < canvas.height; i += 60) {
+                ctx.fillRect(canvas.width / 2 - 1, i + roadOffset, 2, 30);
+            }
+
+            // Projected Target Finish Line
+            let remainingDist = TOTAL_DISTANCE - playerProgress;
+            if (remainingDist < canvas.height) {
+                let finishY = carY - remainingDist;
+                ctx.fillStyle = "#00fff2";
+                ctx.shadowColor = "#00fff2";
+                ctx.shadowBlur = 15;
+                ctx.fillRect(135, finishY, canvas.width - 270, 10);
+                ctx.shadowBlur = 0;
+            }
+
+            // Floating Target Energy Orbs
+            ctx.fillStyle = "#ffcc00";
+            ctx.beginPath();
+            ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Player Chasis Block Paint
+            let cg = ctx.createLinearGradient(carX, carY, carX + carW, carY);
+            cg.addColorStop(0, '#2f80ed');
+            cg.addColorStop(1, '#00c6ff');
+            ctx.fillStyle = cg;
+            ctx.fillRect(carX, carY, carW, carH);
+
+            ctx.fillStyle = "#090a12";
+            ctx.fillRect(carX + 4, carY + 12, carW - 8, 14);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(carX + 3, carY, 5, 2);
+            ctx.fillRect(carX + carW - 8, carY, 5, 2);
+
+            // Telemetry Deck Panel
+            ctx.fillStyle = "rgba(10, 12, 26, 0.85)";
+            ctx.fillRect(15, 15, 130, 60);
+            ctx.strokeStyle = "rgba(0, 255, 242, 0.2)";
+            ctx.strokeRect(15, 15, 130, 60);
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px sans-serif";
+            let displayDist = Math.max(0, Math.floor(remainingDist / 10));
+            ctx.fillText("TO FINISH: " + displayDist + " M", 22, 32);
+            ctx.fillText("POSITION: " + rankStr, 22, 48);
+            ctx.fillStyle = "#ffcc00";
+            ctx.fillText("CRYSTALS: " + score, 22, 64);
+
+            // Live Remote Standing Tracker Map Grid
+            ctx.fillStyle = "rgba(10, 12, 26, 0.85)";
+            ctx.fillRect(canvas.width - 115, 15, 100, 75);
+            ctx.strokeRect(canvas.width - 115, 15, 100, 75);
+
+            ctx.font = "9px sans-serif";
+            standings.forEach((st, idx) => {
+                ctx.fillStyle = st.isPlayer ? "#00fff2" : "#ffffff";
+                ctx.fillText((idx + 1) + ". " + st.name, canvas.width - 105, 30 + (idx * 14));
+            });
+
+        } catch(gameErr) {}
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+}
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    startNeonRider();
+} else {
+    window.addEventListener("DOMContentLoaded", startNeonRider);
+}
+</script>
+
+</body>
+</html>
