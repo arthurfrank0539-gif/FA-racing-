@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Neon GP - Pro Racer</title>
+    <title>Neon Pro GP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         * {
             box-sizing: border-box;
-        }
-        body {
             margin: 0;
             padding: 0;
+        }
+        body {
             background: #05060c;
             display: flex;
             flex-direction: column;
@@ -24,7 +24,7 @@
             -webkit-user-select: none;
         }
         .header-title {
-            margin: 12px 0 6px 0;
+            margin: 15px 0 10px 0;
             font-size: 1.6rem;
             font-weight: 800;
             text-transform: uppercase;
@@ -67,7 +67,6 @@
             cursor: pointer;
             box-shadow: 0 0 25px #00fff2;
             z-index: 20;
-            transition: all 0.2s;
         }
         .controls-pad {
             display: flex;
@@ -75,8 +74,8 @@
             align-items: center;
             width: 94%;
             max-width: 430px;
-            margin-top: 18px;
-            margin-bottom: 12px;
+            margin-top: 15px;
+            margin-bottom: 15px;
             padding: 12px;
             background: rgba(13, 15, 30, 0.9);
             border: 1px solid rgba(0, 255, 242, 0.2);
@@ -101,7 +100,7 @@
             align-items: center;
             touch-action: none;
             box-shadow: 0 6px 12px rgba(0, 255, 242, 0.15);
-            transition: transform 0.05s, background 0.05s;
+            transition: transform 0.05s;
         }
         .btn:active {
             background: #00fff2;
@@ -159,16 +158,16 @@ function startNeonRider() {
 
     // Player Configuration
     let carX = 232;
-    let carY = 340;
+    let carY = 320; // Moved up slightly to allow trailing cars to stay on screen
     const carW = 34;
     const carH = 62;
 
-    // Competitors Dynamic Data Layout
+    // Competitors Dynamic Data Layout (Tightly packed around starting line)
     let racers = [
         { id: "Player", name: "YOU", progress: 0, speedModifier: 1.0, isPlayer: true, x: 232, color1: '#2f80ed', color2: '#00c6ff' },
-        { id: "AI1", name: "VIOLET", progress: 300, speedModifier: 0.97, x: 155, color1: '#7b1fa2', color2: '#e040fb' },
-        { id: "AI2", name: "ORANGE", progress: 150, speedModifier: 1.02, x: 310, color1: '#f57c00', color2: '#ffb74d' },
-        { id: "AI3", name: "GREEN", progress: 450, speedModifier: 0.95, x: 232, color1: '#388e3c', color2: '#69f0ae' }
+        { id: "AI1", name: "VIOLET", progress: 80, speedModifier: 0.99, x: 155, color1: '#7b1fa2', color2: '#e040fb' },
+        { id: "AI2", name: "ORANGE", progress: 40, speedModifier: 1.01, x: 310, color1: '#f57c00', color2: '#ffb74d' },
+        { id: "AI3", name: "GREEN", progress: 120, speedModifier: 0.97, x: 232, color1: '#388e3c', color2: '#69f0ae' }
     ];
 
     let coinX = 145 + Math.random() * (210 - 18);
@@ -199,23 +198,6 @@ function startNeonRider() {
         } catch(e) {}
     }
 
-    function playSound() {
-        if (!audioCtx || audioCtx.state === 'suspended') return;
-        try {
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); 
-            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
-        } catch(e) {}
-    }
-
     function addEvent(id, startEvt, endEvt, setter) {
         const el = document.getElementById(id);
         if (!el) return;
@@ -242,9 +224,9 @@ function startNeonRider() {
         carX = 232;
 
         racers[0].progress = 0;
-        racers[1].progress = 200 + Math.random() * 150;
-        racers[2].progress = 100 + Math.random() * 150;
-        racers[3].progress = 300 + Math.random() * 150;
+        racers[1].progress = 60 + Math.random() * 40;
+        racers[2].progress = 30 + Math.random() * 40;
+        racers[3].progress = 90 + Math.random() * 40;
 
         coinY = -150;
         if (restartBtn) restartBtn.style.display = "none";
@@ -267,7 +249,7 @@ function startNeonRider() {
 
                 playerProgress += currentSpeed;
                 racers[0].progress = playerProgress;
-                racers[0].x = carX; // Sync visual data
+                racers[0].x = carX;
 
                 roadOffset += currentSpeed;
                 if (roadOffset > 60) roadOffset = 0;
@@ -275,12 +257,13 @@ function startNeonRider() {
                 // Move Competitor Positions
                 for (let i = 1; i < racers.length; i++) {
                     let ai = racers[i];
-                    let aiSpeed = (baseSpeed + (Math.sin(playerProgress * 0.0015 + i) * 1.1)) * ai.speedModifier;
+                    // Dynamic rubber-banding logic keeps them close enough to be seen on track
+                    let aiSpeed = (baseSpeed + (Math.sin(playerProgress * 0.002 + i) * 1.2)) * ai.speedModifier;
                     ai.progress += aiSpeed;
                     
-                    // Gentle weave behavior on lane positions
-                    if(i === 1) ai.x = 155 + Math.sin(playerProgress * 0.001) * 10;
-                    if(i === 2) ai.x = 310 + Math.cos(playerProgress * 0.001) * 10;
+                    // Lane weaving behavior
+                    if(i === 1) ai.x = 155 + Math.sin(playerProgress * 0.001) * 8;
+                    if(i === 2) ai.x = 310 + Math.cos(playerProgress * 0.001) * 8;
                 }
 
                 if (playerProgress >= TOTAL_DISTANCE) {
@@ -298,7 +281,6 @@ function startNeonRider() {
                 }
                 if (carX < coinX + coinSize && carX + carW > coinX && carY < coinY + coinSize && carY + carH > coinY) {
                     score++;
-                    playSound();
                     coinY = -200; 
                     coinX = 145 + Math.random() * (210 - coinSize);
                 }
@@ -349,20 +331,17 @@ function startNeonRider() {
 
             // Energy Crystal Orb
             ctx.fillStyle = "#ffcc00";
-            ctx.shadowColor = "#ffcc00";
-            ctx.shadowBlur = 10;
             ctx.beginPath();
             ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
             ctx.fill();
-            ctx.shadowBlur = 0;
 
-            // --- RENDER RACERS PIPELINE ---
+            // --- RENDER RACERS WITH UPDATED POSITION CAMERA ---
             racers.forEach(r => {
                 // Calculate position relative to player anchor view
+                // This ensures trailing cars stay visible behind the player!
                 let renderY = carY - (r.progress - playerProgress);
                 
-                // Only render if visible within view dimensions
-                if (renderY > -70 && renderY < canvas.height + 20) {
+                if (renderY > -70 && renderY < canvas.height + 100) {
                     let cg = ctx.createLinearGradient(r.x, renderY, r.x + carW, renderY);
                     cg.addColorStop(0, r.color1);
                     cg.addColorStop(1, r.color2);
@@ -380,11 +359,9 @@ function startNeonRider() {
 
                     // Name Tag for AI opponents
                     if (!r.isPlayer) {
-                        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-                        ctx.font = "9px sans-serif";
-                        ctx.textAlign = "center";
-                        ctx.fillText(r.name, r.x + carW/2, renderY - 6);
-                        ctx.textAlign = "left";
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+                        ctx.font = "bold 10px sans-serif";
+                        ctx.fillText(r.name, r.x, renderY - 8);
                     }
                 }
             });
