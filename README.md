@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Sprint GP: 15 Stages</title>
+    <title>Neon Sprint GP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         * {
@@ -145,30 +145,29 @@
 </div>
 
 <script>
-function startNeonChampionship() {
+window.addEventListener("load", function() {
     const canvas = document.getElementById("gameCanvas");
-    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const nextLevelBtn = document.getElementById("nextLevelBtn");
     const levelNameDisplay = document.getElementById("levelNameDisplay");
 
-    // 15 Level Campaign Matrix Config
+    // 15 Level Dynamic Parameters Map
     const levelsConfig = [
-        { name: "Stage 1: Sector Zero", distance: 8000, baseSpeed: 5.5, aiAggression: 0.03, theme: "#00fff2" },
-        { name: "Stage 2: Grid City", distance: 9000, baseSpeed: 6.0, aiAggression: 0.04, theme: "#ff00bb" },
-        { name: "Stage 3: Cyber Basin", distance: 10000, baseSpeed: 6.5, aiAggression: 0.04, theme: "#bc00ff" },
-        { name: "Stage 4: Laser Highway", distance: 11000, baseSpeed: 7.0, aiAggression: 0.05, theme: "#00ff66" },
-        { name: "Stage 5: Tokyo Grid", distance: 12000, baseSpeed: 7.5, aiAggression: 0.05, theme: "#ffff00" },
-        { name: "Stage 6: Synth Outpost", distance: 13000, baseSpeed: 8.0, aiAggression: 0.06, theme: "#ff5500" },
-        { name: "Stage 7: Overdrive Pass", distance: 14000, baseSpeed: 8.5, aiAggression: 0.06, theme: "#00ffff" },
-        { name: "Stage 8: Matrix Hub", distance: 15000, baseSpeed: 9.0, aiAggression: 0.07, theme: "#ff0055" },
-        { name: "Stage 9: Vector Drift", distance: 16000, baseSpeed: 9.5, aiAggression: 0.07, theme: "#aa00ff" },
-        { name: "Stage 10: Neon Core", distance: 17000, baseSpeed: 10.0, aiAggression: 0.08, theme: "#33ff00" },
-        { name: "Stage 11: Zenith Route", distance: 18000, baseSpeed: 10.5, aiAggression: 0.08, theme: "#0088ff" },
-        { name: "Stage 12: Velocity Valley", distance: 19000, baseSpeed: 11.0, aiAggression: 0.09, theme: "#ff00aa" },
-        { name: "Stage 13: Cosmic Loop", distance: 20000, baseSpeed: 11.5, aiAggression: 0.09, theme: "#ccff00" },
-        { name: "Stage 14: Quantum Slipway", distance: 22000, baseSpeed: 12.0, aiAggression: 0.10, theme: "#ff3300" },
-        { name: "Stage 15: Grand Finale Grand Prix", distance: 25000, baseSpeed: 13.0, aiAggression: 0.12, theme: "#ffffff" }
+        { name: "Stage 1: Sector Zero", distance: 6000, baseSpeed: 5.0, aiAggression: 0.02, theme: "#00fff2" },
+        { name: "Stage 2: Grid City", distance: 7500, baseSpeed: 5.5, aiAggression: 0.03, theme: "#ff00bb" },
+        { name: "Stage 3: Cyber Basin", distance: 9000, baseSpeed: 6.0, aiAggression: 0.04, theme: "#bc00ff" },
+        { name: "Stage 4: Laser Highway", distance: 10500, baseSpeed: 6.5, aiAggression: 0.05, theme: "#00ff66" },
+        { name: "Stage 5: Tokyo Grid", distance: 12000, baseSpeed: 7.0, aiAggression: 0.05, theme: "#ffff00" },
+        { name: "Stage 6: Synth Outpost", distance: 13000, baseSpeed: 7.5, aiAggression: 0.06, theme: "#ff5500" },
+        { name: "Stage 7: Overdrive Pass", distance: 14000, baseSpeed: 8.0, aiAggression: 0.06, theme: "#00ffff" },
+        { name: "Stage 8: Matrix Hub", distance: 15000, baseSpeed: 8.5, aiAggression: 0.07, theme: "#ff0055" },
+        { name: "Stage 9: Vector Drift", distance: 16000, baseSpeed: 9.0, aiAggression: 0.07, theme: "#aa00ff" },
+        { name: "Stage 10: Neon Core", distance: 17000, baseSpeed: 9.5, aiAggression: 0.08, theme: "#33ff00" },
+        { name: "Stage 11: Zenith Route", distance: 18000, baseSpeed: 10.0, aiAggression: 0.08, theme: "#0088ff" },
+        { name: "Stage 12: Velocity Valley", distance: 19000, baseSpeed: 10.5, aiAggression: 0.09, theme: "#ff00aa" },
+        { name: "Stage 13: Cosmic Loop", distance: 20000, baseSpeed: 11.0, aiAggression: 0.09, theme: "#ccff00" },
+        { name: "Stage 14: Quantum Slipway", distance: 22000, baseSpeed: 11.5, aiAggression: 0.10, theme: "#ff3300" },
+        { name: "Stage 15: Grand Finale GP", distance: 25000, baseSpeed: 12.5, aiAggression: 0.12, theme: "#ffffff" }
     ];
 
     let currentLevelIdx = 0;
@@ -183,16 +182,15 @@ function startNeonChampionship() {
     const carW = 34;
     const carH = 62;
 
-    // AI Racers Profile Engine
     let racers = [
         { id: "Player", name: "YOU", progress: 0, speedModifier: 1.0, isPlayer: true, x: 232, color1: '#00c6ff', color2: '#0072ff' },
-        { id: "AI1", name: "VIOLET", progress: 160, speedModifier: 0.98, x: 160, color1: '#7b1fa2', color2: '#e040fb' },
-        { id: "AI2", name: "ORANGE", progress: 80, speedModifier: 1.01, x: 305, color1: '#f57c00', color2: '#ffb74d' },
-        { id: "AI3", name: "GREEN", progress: 220, speedModifier: 0.96, x: 232, color1: '#388e3c', color2: '#69f0ae' }
+        { id: "AI1", name: "VIOLET", progress: 120, speedModifier: 0.97, x: 160, color1: '#7b1fa2', color2: '#e040fb' },
+        { id: "AI2", name: "ORANGE", progress: 60, speedModifier: 1.01, x: 305, color1: '#f57c00', color2: '#ffb74d' },
+        { id: "AI3", name: "GREEN", progress: 180, speedModifier: 0.95, x: 232, color1: '#388e3c', color2: '#69f0ae' }
     ];
 
     let coinX = 145 + Math.random() * (210 - 18);
-    let coinY = -300;
+    let coinY = -150;
     const coinSize = 18;
 
     let buildings = [
@@ -215,6 +213,7 @@ function startNeonChampionship() {
     addEvent("rightBtn", "touchstart", "touchend", (v) => touchRight = v);
     addEvent("accelBtn", "touchstart", "touchend", (v) => touchAccel = v);
     addEvent("brakeBtn", "touchstart", "touchend", (v) => touchBrake = v);
+    
     addEvent("leftBtn", "mousedown", "mouseup", (v) => touchLeft = v);
     addEvent("rightBtn", "mousedown", "mouseup", (v) => touchRight = v);
     addEvent("accelBtn", "mousedown", "mouseup", (v) => touchAccel = v);
@@ -222,7 +221,7 @@ function startNeonChampionship() {
 
     function loadLevel(idx) {
         if(idx >= levelsConfig.length) {
-            finishState = "CHAMPIONSHIP COMPLETED!";
+            finishState = "CHAMPIONSHIP COMPLETE!";
             gameOver = true;
             return;
         }
@@ -237,19 +236,19 @@ function startNeonChampionship() {
         carX = 232;
 
         racers[0].progress = 0;
-        racers[1].progress = 150;
-        racers[2].progress = 90;
-        racers[3].progress = 210;
+        racers[1].progress = 120;
+        racers[2].progress = 60;
+        racers[3].progress = 180;
 
         coinY = -150;
         nextLevelBtn.style.display = "none";
     }
 
     nextLevelBtn.addEventListener("click", () => {
-        if (finishState.includes("QUALIFIED") || finishState.includes("COMPLETED")) {
+        if (finishState.includes("CLEAR") || finishState.includes("COMPLETED")) {
             loadLevel(currentLevelIdx + 1);
         } else {
-            loadLevel(currentLevelIdx); // Retry level
+            loadLevel(currentLevelIdx);
         }
     });
 
@@ -259,44 +258,37 @@ function startNeonChampionship() {
 
         if (!gameOver) {
             let currentSpeed = runningBaseSpeed;
-            if (touchAccel) currentSpeed = runningBaseSpeed * 1.7;
+            if (touchAccel) currentSpeed = runningBaseSpeed * 1.6;
             else if (touchBrake) currentSpeed = runningBaseSpeed * 0.3;
 
-            if (touchLeft && carX > 140) carX -= 5.5;
-            if (touchRight && carX < canvas.width - 140 - carW) carX += 5.5;
+            if (touchLeft && carX > 140) carX -= 5;
+            if (touchRight && carX < canvas.width - 140 - carW) carX += 5;
 
             playerProgress += currentSpeed;
             racers[0].progress = playerProgress;
             racers[0].x = carX;
 
-            // Move AI drivers using updated rubber-banding tracking logic
+            // Engine AI movement system with recovery metrics
             for (let i = 1; i < racers.length; i++) {
                 let ai = racers[i];
                 let distanceBehind = playerProgress - ai.progress;
                 
                 let dynamicModifier = ai.speedModifier;
-                if (distanceBehind > 220) dynamicModifier += (cfg.aiAggression + 0.05); 
-                if (distanceBehind < -260) dynamicModifier -= (cfg.aiAggression);
+                if (distanceBehind > 200) dynamicModifier += (cfg.aiAggression + 0.04); 
+                if (distanceBehind < -200) dynamicModifier -= (cfg.aiAggression);
 
-                let aiSpeed = (runningBaseSpeed + (Math.sin(playerProgress * 0.003 + i) * 1.2)) * dynamicModifier;
+                let aiSpeed = (runningBaseSpeed + (Math.sin(playerProgress * 0.003 + i) * 1.0)) * dynamicModifier;
                 ai.progress += aiSpeed;
                 
-                if(i === 1) ai.x = 160 + Math.sin(playerProgress * 0.002) * 14;
-                if(i === 2) ai.x = 305 + Math.cos(playerProgress * 0.002) * 14;
+                if(i === 1) ai.x = 160 + Math.sin(playerProgress * 0.002) * 12;
+                if(i === 2) ai.x = 305 + Math.cos(playerProgress * 0.002) * 12;
             }
 
-            // Fixed camera rendering anchor windows
-            let leadProgress = Math.max(...racers.map(r => r.progress));
-            if (playerProgress >= leadProgress - 50) {
-                cameraProgress = playerProgress - 120;
-            } else {
-                cameraProgress = playerProgress - 180;
-            }
+            cameraProgress = playerProgress - 150;
 
             roadOffset += currentSpeed;
             if (roadOffset > 60) roadOffset = 0;
 
-            // Handle level completion ranking checks
             if (playerProgress >= cfg.distance) {
                 gameOver = true;
                 let standingsCheck = [...racers].sort((a, b) => b.progress - a.progress);
@@ -304,9 +296,9 @@ function startNeonChampionship() {
                 
                 if (finalRank <= 3) {
                     finishState = "STAGE CLEAR! RANK: " + finalRank;
-                    nextLevelBtn.textContent = currentLevelIdx === 14 ? "View Credits" : "Next Stage";
+                    nextLevelBtn.textContent = currentLevelIdx === 14 ? "Championship Complete" : "Next Stage";
                 } else {
-                    finishState = "FAILED! MUST BE TOP 3";
+                    finishState = "FAILED! NOT IN TOP 3";
                     nextLevelBtn.textContent = "Retry Stage";
                 }
                 nextLevelBtn.style.display = "block";
@@ -369,7 +361,7 @@ function startNeonChampionship() {
         ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Render relative racing engine elements
+        // Render relative racing cars
         racers.forEach(r => {
             let renderY = canvas.height - (r.progress - cameraProgress) - carH;
             if (renderY > -70 && renderY < canvas.height + 70) {
@@ -394,7 +386,7 @@ function startNeonChampionship() {
             }
         });
 
-        // Process position logic metrics HUD
+        // HUD Dashboard metrics
         let standings = [...racers].sort((a, b) => b.progress - a.progress);
         let playerRank = standings.findIndex(r => r.isPlayer) + 1;
         let suffixes = ["ST", "ND", "RD", "TH"];
@@ -407,7 +399,7 @@ function startNeonChampionship() {
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 11px sans-serif";
         let displayDist = Math.max(0, Math.floor((cfg.distance - playerProgress) / 10));
-        ctx.fillText("GOAL: " + displayDist + " M", 22, 32);
+        ctx.fillText("DIST: " + displayDist + " M", 22, 32);
         ctx.fillText("POS: " + playerRank + suffixes[playerRank - 1], 22, 48);
         ctx.fillStyle = "#ffcc00";
         ctx.fillText("CRYSTALS: " + score, 22, 64);
@@ -427,4 +419,22 @@ function startNeonChampionship() {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             ctx.fillStyle = cfg.theme;
-            ctx
+            ctx.font = "bold 22px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(finishState, canvas.width / 2, canvas.height / 2 - 25);
+            
+            ctx.fillStyle = "rgba(255,255,255,0.8)";
+            ctx.font = "15px sans-serif";
+            ctx.fillText("Total Championship Crystals: " + score, canvas.width / 2, canvas.height / 2 + 10);
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    loadLevel(0);
+    gameLoop();
+});
+</script>
+
+</body>
+</html>
