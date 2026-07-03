@@ -76,50 +76,59 @@
             box-shadow: 0 0 25px #00fff2;
             z-index: 20;
         }
+        /* Modernized Larger Control Pad */
         .controls-pad {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 94%;
             max-width: 430px;
-            margin-top: 12px;
+            margin-top: 16px;
             margin-bottom: 12px;
-            padding: 10px;
-            background: rgba(13, 15, 30, 0.9);
-            border: 1px solid rgba(0, 255, 242, 0.2);
-            border-radius: 24px;
+            padding: 12px 16px;
+            background: rgba(10, 12, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 30px;
         }
         .btn-group {
             display: flex;
-            gap: 14px;
+            gap: 16px;
         }
         .btn {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #12152a 0%, #0a0c18 100%);
-            border: 2px solid #00fff2;
-            border-radius: 20px;
+            width: 76px;
+            height: 76px;
+            background: rgba(0, 255, 242, 0.04);
+            border: 2px solid rgba(0, 255, 242, 0.4);
+            border-radius: 24px;
             color: #00fff2;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             touch-action: none;
+            cursor: pointer;
+            transition: background 0.1s, transform 0.1s, box-shadow 0.1s;
+            box-shadow: inset 0 0 10px rgba(0, 255, 242, 0.1);
         }
         .btn:active {
             background: #00fff2;
             color: #090a14;
-            box-shadow: 0 0 25px #00fff2;
+            transform: scale(0.95);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.6);
         }
         .btn-action {
             color: #ff2d55;
-            border-color: #ff2d55;
+            background: rgba(ff, 45, 85, 0.04);
+            border-color: rgba(2ff, 45, 85, 0.4);
+            box-shadow: inset 0 0 10px rgba(255, 45, 85, 0.1);
         }
         .btn-action:active {
             background: #ff2d55;
             color: #090a14;
-            box-shadow: 0 0 25px #ff2d55;
+            box-shadow: 0 0 20px rgba(255, 45, 85, 0.6);
         }
     </style>
 </head>
@@ -151,7 +160,6 @@ window.addEventListener("load", function() {
     const nextLevelBtn = document.getElementById("nextLevelBtn");
     const levelNameDisplay = document.getElementById("levelNameDisplay");
 
-    // 15 Level Dynamic Parameters Map
     const levelsConfig = [
         { name: "Stage 1: Sector Zero", distance: 6000, baseSpeed: 5.0, aiAggression: 0.02, theme: "#00fff2" },
         { name: "Stage 2: Grid City", distance: 7500, baseSpeed: 5.5, aiAggression: 0.03, theme: "#ff00bb" },
@@ -268,7 +276,6 @@ window.addEventListener("load", function() {
             racers[0].progress = playerProgress;
             racers[0].x = carX;
 
-            // Engine AI movement system with recovery metrics
             for (let i = 1; i < racers.length; i++) {
                 let ai = racers[i];
                 let distanceBehind = playerProgress - ai.progress;
@@ -289,152 +296,4 @@ window.addEventListener("load", function() {
             roadOffset += currentSpeed;
             if (roadOffset > 60) roadOffset = 0;
 
-            if (playerProgress >= cfg.distance) {
-                gameOver = true;
-                let standingsCheck = [...racers].sort((a, b) => b.progress - a.progress);
-                let finalRank = standingsCheck.findIndex(r => r.isPlayer) + 1;
-                
-                if (finalRank <= 3) {
-                    finishState = "STAGE CLEAR! RANK: " + finalRank;
-                    nextLevelBtn.textContent = currentLevelIdx === 14 ? "Championship Complete" : "Next Stage";
-                } else {
-                    finishState = "FAILED! NOT IN TOP 3";
-                    nextLevelBtn.textContent = "Retry Stage";
-                }
-                nextLevelBtn.style.display = "block";
-            }
-
-            coinY += currentSpeed;
-            let playerRenderY = canvas.height - (playerProgress - cameraProgress) - carH;
-            if (coinY > canvas.height) {
-                coinY = -150 - Math.random() * 250;
-                coinX = 145 + Math.random() * (210 - coinSize);
-            }
-            if (carX < coinX + coinSize && carX + carW > coinX && playerRenderY < coinY + coinSize && playerRenderY + carH > coinY) {
-                score++;
-                coinY = -200; 
-                coinX = 145 + Math.random() * (210 - coinSize);
-            }
-
-            buildings.forEach(b => {
-                b.y += currentSpeed * 0.4;
-                if (b.y > canvas.height) b.y = -b.h;
-            });
-        }
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Sidebar scenery
-        buildings.forEach(b => {
-            let drawX = b.leftSide ? b.xOffset : canvas.width - b.w - b.xOffset;
-            ctx.fillStyle = "#111222";
-            ctx.fillRect(drawX, b.y, b.w, b.h);
-            ctx.fillStyle = cfg.theme;
-            ctx.fillRect(drawX, b.y, b.w, 3);
-        });
-
-        // Main track rendering
-        let roadGrad = ctx.createLinearGradient(135, 0, canvas.width - 135, 0);
-        roadGrad.addColorStop(0, '#07080e');
-        roadGrad.addColorStop(0.5, '#121426');
-        roadGrad.addColorStop(1, '#07080e');
-        ctx.fillStyle = roadGrad;
-        ctx.fillRect(135, 0, canvas.width - 270, canvas.height);
-
-        ctx.fillStyle = cfg.theme;
-        ctx.fillRect(135, 0, 2, canvas.height);
-        ctx.fillRect(canvas.width - 137, 0, 2, canvas.height);
-
-        ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-        for (let i = -60; i < canvas.height; i += 60) {
-            ctx.fillRect(canvas.width / 2 - 1, i + roadOffset, 2, 30);
-        }
-
-        let finishLineY = canvas.height - (cfg.distance - cameraProgress);
-        if (finishLineY > -50 && finishLineY < canvas.height) {
-            ctx.fillStyle = "#ffcc00";
-            ctx.fillRect(135, finishLineY, canvas.width - 270, 16);
-        }
-
-        ctx.fillStyle = "#ffcc00";
-        ctx.beginPath();
-        ctx.arc(coinX + coinSize/2, coinY + coinSize/2, coinSize/2, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Render relative racing cars
-        racers.forEach(r => {
-            let renderY = canvas.height - (r.progress - cameraProgress) - carH;
-            if (renderY > -70 && renderY < canvas.height + 70) {
-                let cg = ctx.createLinearGradient(r.x, renderY, r.x + carW, renderY);
-                cg.addColorStop(0, r.color1);
-                cg.addColorStop(1, r.color2);
-                ctx.fillStyle = cg;
-                ctx.fillRect(r.x, renderY, carW, carH);
-
-                ctx.fillStyle = "#080911";
-                ctx.fillRect(r.x + 4, renderY + 12, carW - 8, 15);
-                
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(r.x + 3, renderY, 5, 2);
-                ctx.fillRect(r.x + carW - 8, renderY, 5, 2);
-
-                if (!r.isPlayer) {
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-                    ctx.font = "bold 10px sans-serif";
-                    ctx.fillText(r.name, r.x, renderY - 8);
-                }
-            }
-        });
-
-        // HUD Dashboard metrics
-        let standings = [...racers].sort((a, b) => b.progress - a.progress);
-        let playerRank = standings.findIndex(r => r.isPlayer) + 1;
-        let suffixes = ["ST", "ND", "RD", "TH"];
-
-        ctx.fillStyle = "rgba(10, 12, 26, 0.9)";
-        ctx.fillRect(15, 15, 130, 62);
-        ctx.strokeStyle = cfg.theme;
-        ctx.strokeRect(15, 15, 130, 62);
-        
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 11px sans-serif";
-        let displayDist = Math.max(0, Math.floor((cfg.distance - playerProgress) / 10));
-        ctx.fillText("DIST: " + displayDist + " M", 22, 32);
-        ctx.fillText("POS: " + playerRank + suffixes[playerRank - 1], 22, 48);
-        ctx.fillStyle = "#ffcc00";
-        ctx.fillText("CRYSTALS: " + score, 22, 64);
-
-        ctx.fillStyle = "rgba(10, 12, 26, 0.9)";
-        ctx.fillRect(canvas.width - 115, 15, 100, 75);
-        ctx.strokeRect(canvas.width - 115, 15, 100, 75);
-
-        ctx.font = "9px sans-serif";
-        standings.forEach((st, idx) => {
-            ctx.fillStyle = st.isPlayer ? "#00fff2" : "#ffffff";
-            ctx.fillText((idx + 1) + ". " + st.name, canvas.width - 105, 31 + (idx * 14));
-        });
-
-        if (gameOver) {
-            ctx.fillStyle = "rgba(8, 9, 18, 0.96)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = cfg.theme;
-            ctx.font = "bold 22px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText(finishState, canvas.width / 2, canvas.height / 2 - 25);
-            
-            ctx.fillStyle = "rgba(255,255,255,0.8)";
-            ctx.font = "15px sans-serif";
-            ctx.fillText("Total Championship Crystals: " + score, canvas.width / 2, canvas.height / 2 + 10);
-        }
-
-        requestAnimationFrame(gameLoop);
-    }
-
-    loadLevel(0);
-    gameLoop();
-});
-</script>
-
-</body>
-</html>
+            if (playerProgress >= cfg.
