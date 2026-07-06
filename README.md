@@ -129,11 +129,11 @@ const ctx = canvas.getContext("2d");
 const nextBtn = document.getElementById("nextBtn");
 const stageTitle = document.getElementById("stageTitle");
 
-// Distances have been scaled up for longer endurance racing
+// Tracks are scaled up 4x for high-endurance racing
 const configs = [
-    { name: "Stage 1: Sector Zero", dist: 10000, speed: 5, color: "#00fff2" },
-    { name: "Stage 2: Grid City", dist: 14000, speed: 6, color: "#ff00bb" },
-    { name: "Stage 3: Cyber Basin", dist: 18000, speed: 7, color: "#bc00ff" }
+    { name: "Stage 1: Sector Zero", dist: 40000, speed: 5, color: "#00fff2" },
+    { name: "Stage 2: Grid City", dist: 56000, speed: 6, color: "#ff00bb" },
+    { name: "Stage 3: Cyber Basin", dist: 72000, speed: 7, color: "#bc00ff" }
 ];
 
 let currentLevel = 0;
@@ -302,7 +302,7 @@ function draw() {
     }
 
     let finishY = canvas.height - 90 - (cfg.dist - distanceTraveled);
-    if (finishY > -20 && finishY < canvas.height) {
+    if (finishY > -20 finishY < canvas.height) {
         ctx.fillStyle = "#ffcc00";
         ctx.fillRect(90, finishY, canvas.width - 180, 12);
     }
