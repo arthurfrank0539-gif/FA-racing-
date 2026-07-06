@@ -129,10 +129,11 @@ const ctx = canvas.getContext("2d");
 const nextBtn = document.getElementById("nextBtn");
 const stageTitle = document.getElementById("stageTitle");
 
+// Distances have been scaled up for longer endurance racing
 const configs = [
-    { name: "Stage 1: Sector Zero", dist: 5000, speed: 5, color: "#00fff2" },
-    { name: "Stage 2: Grid City", dist: 7000, speed: 6, color: "#ff00bb" },
-    { name: "Stage 3: Cyber Basin", dist: 9000, speed: 7, color: "#bc00ff" }
+    { name: "Stage 1: Sector Zero", dist: 10000, speed: 5, color: "#00fff2" },
+    { name: "Stage 2: Grid City", dist: 14000, speed: 6, color: "#ff00bb" },
+    { name: "Stage 3: Cyber Basin", dist: 18000, speed: 7, color: "#bc00ff" }
 ];
 
 let currentLevel = 0;
