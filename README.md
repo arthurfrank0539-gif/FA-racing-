@@ -28,23 +28,22 @@
             font-weight: bold;
             color: #00fff2;
             letter-spacing: 2px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
-        .game-container {
+        .ui-box {
             position: relative;
-            width: 95%;
-            max-width: 400px;
-            background: #111;
+            width: 360px;
+            height: 400px;
+            background: #0d0e15;
             border: 2px solid #00fff2;
             border-radius: 12px;
-            overflow: hidden;
         }
         canvas {
-            display: block;
             width: 100%;
-            height: auto;
-            background: #0d0e15;
+            height: 100%;
+            display: block;
+            border-radius: 10px;
         }
         #nextBtn {
             display: none;
@@ -62,17 +61,15 @@
             box-shadow: 0 0 15px #00fff2;
             z-index: 10;
         }
-        .controls {
+        .control-panel {
             display: flex;
             justify-content: space-between;
-            width: 95%;
-            max-width: 400px;
-            margin-top: 15px;
-            padding: 0 5px;
+            width: 360px;
+            margin-top: 20px;
         }
-        .btn-dir, .btn-speed {
+        .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
         .pad-btn {
             width: 65px;
@@ -81,13 +78,12 @@
             border: 2px solid #00fff2;
             color: #00fff2;
             border-radius: 15px;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             touch-action: none;
-            cursor: pointer;
         }
         .pad-btn:active {
             background: #00fff2;
@@ -108,17 +104,17 @@
 
 <div id="stageTitle">Stage 1: Sector Zero</div>
 
-<div class="game-container">
-    <canvas id="gameCanvas" width="400" height="450"></canvas>
+<div class="ui-box">
+    <canvas id="gameCanvas" width="360" height="400"></canvas>
     <button id="nextBtn" onclick="handleNextStage()">Next Stage</button>
 </div>
 
-<div class="controls">
-    <div class="btn-dir">
+<div class="control-panel">
+    <div class="btn-group">
         <div class="pad-btn" id="btnLeft">←</div>
         <div class="pad-btn" id="btnRight">→</div>
     </div>
-    <div class="btn-speed">
+    <div class="btn-group">
         <div class="pad-btn red" id="btnBrake">↓</div>
         <div class="pad-btn red" id="btnAccel">↑</div>
     </div>
@@ -143,29 +139,36 @@ let score = 0;
 let distanceTraveled = 0;
 let trackOffset = 0;
 
-let pX = 185;
+let pX = 165;
 const carW = 30;
 const carH = 55;
 
 let racers = [
-    { name: "YOU", progress: 0, x: 185, isPlayer: true, c1: "#00c6ff", c2: "#0072ff" },
-    { name: "VIOLET", progress: 140, x: 120, isPlayer: false, c1: "#7b1fa2", c2: "#e040fb" },
-    { name: "ORANGE", progress: 70, x: 250, isPlayer: false, c1: "#f57c00", c2: "#ffb74d" }
+    { name: "YOU", progress: 0, x: 165, isPlayer: true, c1: "#00c6ff", c2: "#0072ff" },
+    { name: "VIOLET", progress: 140, x: 110, isPlayer: false, c1: "#7b1fa2", c2: "#e040fb" },
+    { name: "ORANGE", progress: 70, x: 220, isPlayer: false, c1: "#f57c00", c2: "#ffb74d" }
 ];
 
-let itemX = 200;
+let itemX = 180;
 let itemY = -50;
 
-// Controls tracking
 let keys = { left: false, right: false, up: false, down: false };
 
 function setupInput(elementId, keyProp) {
     const btn = document.getElementById(elementId);
     if (!btn) return;
-    const start = (e) => { e.preventDefault(); keys[keyProp] = true; };
-    const end = (e) => { e.preventDefault(); keys[keyProp] = false; };
-    btn.addEventListener("touchstart", start);
-    btn.addEventListener("touchend", end);
+    
+    const start = (e) => { 
+        e.preventDefault(); 
+        keys[keyProp] = true; 
+    };
+    const end = (e) => { 
+        e.preventDefault(); 
+        keys[keyProp] = false; 
+    };
+    
+    btn.addEventListener("touchstart", start, { passive: false });
+    btn.addEventListener("touchend", end, { passive: false });
     btn.addEventListener("mousedown", start);
     btn.addEventListener("mouseup", end);
     btn.addEventListener("mouseleave", end);
@@ -202,7 +205,7 @@ function initLevel(idx) {
     isGameOver = false;
     statusText = "";
     distanceTraveled = 0;
-    pX = 185;
+    pX = 165;
     
     racers[0].progress = 0;
     racers[1].progress = 140;
@@ -229,14 +232,13 @@ function update() {
     if (keys.up) currentSpeed *= 1.5;
     if (keys.down) currentSpeed *= 0.4;
 
-    if (keys.left && pX > 105) pX -= 4;
-    if (keys.right && pX < canvas.width - 105 - carW) pX += 4;
+    if (keys.left && pX > 95) pX -= 4;
+    if (keys.right && pX < canvas.width - 95 - carW) pX += 4;
 
     distanceTraveled += currentSpeed;
     racers[0].progress = distanceTraveled;
     racers[0].x = pX;
 
-    // AI movement behavior
     for (let i = 1; i < racers.length; i++) {
         let ai = racers[i];
         let diff = distanceTraveled - ai.progress;
@@ -250,21 +252,19 @@ function update() {
 
     trackOffset = (trackOffset + currentSpeed) % 40;
 
-    // Crystal Item loop logic
     itemY += currentSpeed;
     let pRenderY = canvas.height - 90;
     if (itemY > canvas.height) {
         itemY = -60;
-        itemX = 110 + Math.random() * (canvas.width - 220);
+        itemX = 100 + Math.random() * (canvas.width - 200);
     }
 
     if (pX < itemX + 16 && pX + carW > itemX && pRenderY < itemY + 16 && pRenderY + carH > itemY) {
         score++;
         itemY = -200;
-        itemX = 110 + Math.random() * (canvas.width - 220);
+        itemX = 100 + Math.random() * (canvas.width - 200);
     }
 
-    // Goal calculation
     if (distanceTraveled >= cfg.dist) {
         isGameOver = true;
         let finalStandings = [...racers].sort((a, b) => b.progress - a.progress);
@@ -285,28 +285,24 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let cfg = configs[currentLevel];
 
-    // Track rendering 
     ctx.fillStyle = "#161824";
-    ctx.fillRect(100, 0, canvas.width - 200, canvas.height);
+    ctx.fillRect(90, 0, canvas.width - 180, canvas.height);
 
     ctx.fillStyle = cfg.color;
-    ctx.fillRect(98, 0, 3, canvas.height);
-    ctx.fillRect(canvas.width - 101, 0, 3, canvas.height);
+    ctx.fillRect(88, 0, 3, canvas.height);
+    ctx.fillRect(canvas.width - 91, 0, 3, canvas.height);
 
-    // Center divider lines
     ctx.fillStyle = "rgba(255,255,255,0.2)";
     for (let y = -40; y < canvas.height; y += 40) {
         ctx.fillRect(canvas.width / 2 - 2, y + trackOffset, 4, 20);
     }
 
-    // Finish line overlay
     let finishY = canvas.height - 90 - (cfg.dist - distanceTraveled);
     if (finishY > -20 && finishY < canvas.height) {
         ctx.fillStyle = "#ffcc00";
-        ctx.fillRect(100, finishY, canvas.width - 200, 12);
+        ctx.fillRect(90, finishY, canvas.width - 180, 12);
     }
 
-    // Draw Crystal
     if (itemY > -20 && itemY < canvas.height) {
         ctx.fillStyle = "#ffff00";
         ctx.beginPath();
@@ -314,7 +310,6 @@ function draw() {
         ctx.fill();
     }
 
-    // Render Vehicles
     racers.forEach(r => {
         let renderY = canvas.height - 90 - (r.progress - distanceTraveled);
         if (renderY > -60 && renderY < canvas.height + 60) {
@@ -330,7 +325,6 @@ function draw() {
         }
     });
 
-    // Score overlay panel
     ctx.fillStyle = "rgba(10,12,20,0.85)";
     ctx.fillRect(10, 10, 110, 55);
     ctx.strokeStyle = cfg.color;
